@@ -1,28 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""The setup script."""
-
-from setuptools import setup, find_packages
-
-with open('README.rst') as readme_file:
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
+with open('CHANGELOG.md') as history_file:
     history = history_file.read()
 
 requirements = [
-    # TODO: put package requirements here
 ]
 
 setup_requirements = [
     'pytest-runner',
-    # TODO(somada141): put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
     'pytest',
-    # TODO: put package test requirements here
 ]
 
 setup(
@@ -31,7 +21,7 @@ setup(
     description="ClinicalTrials XML dump parser and SQL ingester.",
     long_description=readme + '\n\n' + history,
     author="Adamos Kyriakou",
-    author_email='somada141@gmail.com',
+    author_email='adam@bearnd.io',
     url='https://github.com/somada141/ct_ingester',
     packages=find_packages(include=['ct_ingester']),
     include_package_data=True,
