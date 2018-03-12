@@ -236,3 +236,17 @@ class BiospecRetentionType(EnumBase):
     NONE = "None Retained"
     SAMPLES_W_DNA = "Samples With DNA"
     SAMPLES_WO_DNA = "Samples Without DNA"
+
+
+class SponsorType(EnumBase):
+    """Enumeration of the sponsor types."""
+
+    LEAD = "lead_sponsor"
+    COLLABORATOR = "collaborator"
+
+
+class InvestigatorType(EnumBase):
+    """Enumeration of the investigator types."""
+
+    LOCATION = "location"
+    OVERALL = "overall"
