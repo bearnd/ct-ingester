@@ -23,6 +23,13 @@ from ct_ingester.orm_enums import InterventionType
 from ct_ingester.orm_enums import SamplingMethodType
 from ct_ingester.orm_enums import GenderType
 from ct_ingester.orm_enums import ResponsiblePartyType
+from ct_ingester.orm_enums import EventAssessmentType
+from ct_ingester.orm_enums import OverallStatusType
+from ct_ingester.orm_enums import PhaseType
+from ct_ingester.orm_enums import StudyType
+from ct_ingester.orm_enums import BiospecRetentionType
+from ct_ingester.orm_enums import ReferenceType
+from ct_ingester.orm_enums import MeshTermType
 
 
 class Sponsor(Base, OrmBase):
@@ -68,35 +75,6 @@ class Sponsor(Base, OrmBase):
         argument="Study",
         secondary="study_sponsors",
         back_populates="sponsors"
-    )
-
-
-class StudySponsor(Base, OrmBase):
-    """Associative table between `Study` and `Sponsor` records."""
-
-    # set table name
-    __tablename__ = "study_sponsors"
-
-    # Autoincrementing primary key ID.
-    study_sponsor_id = sqlalchemy.Column(
-        name="study_sponsor_id",
-        type_=sqlalchemy.types.BigInteger(),
-        primary_key=True,
-        autoincrement="auto",
-    )
-
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
-    )
-
-    # Foreign key to the sponsor ID.
-    sponsor_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("sponsors.sponsor_id"),
-        name="sponsor_id",
-        nullable=False,
     )
 
 
@@ -154,35 +132,6 @@ class Keyword(Base, OrmBase):
         self.md5 = md5
 
         return value
-
-
-class StudyKeyword(Base, OrmBase):
-    """Associative table between `Study` and `Keyword` records."""
-
-    # set table name
-    __tablename__ = "study_keywords"
-
-    # Autoincrementing primary key ID.
-    study_keyword_id = sqlalchemy.Column(
-        name="study_keyword_id",
-        type_=sqlalchemy.types.BigInteger(),
-        primary_key=True,
-        autoincrement="auto",
-    )
-
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
-    )
-
-    # Foreign key to the keyword ID.
-    keyword_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("keywords.keyword_id"),
-        name="keyword_id",
-        nullable=False,
-    )
 
 
 class Facility(Base, OrmBase):
@@ -581,18 +530,25 @@ class StudyLocation(Base, OrmBase):
     )
 
 
-class OversightInfo(Base, OrmBase):
+class StudyOversightInfo(Base, OrmBase):
     """Table of `<oversight_info>` elements records."""
 
     # set table name
-    __tablename__ = "oversight_infos"
+    __tablename__ = "study_oversight_infos"
 
     # Autoincrementing primary key ID.
     oversight_info_id = sqlalchemy.Column(
-        name="oversight_info_id",
+        name="study_oversight_info_id",
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
     )
 
     # Referring to the `<has_dmc>` element.
@@ -638,18 +594,25 @@ class OversightInfo(Base, OrmBase):
     )
 
 
-class ExpandedAccessInfo(Base, OrmBase):
+class StudyExpandedAccessInfo(Base, OrmBase):
     """Table of `<expanded_access_info>` elements records."""
 
     # set table name
-    __tablename__ = "expanded_access_infos"
+    __tablename__ = "study_expanded_access_infos"
 
     # Autoincrementing primary key ID.
-    expanded_access_info_id = sqlalchemy.Column(
-        name="expanded_access_info_id",
+    study_expanded_access_info_id = sqlalchemy.Column(
+        name="study_expanded_access_info_id",
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
     )
 
     # Referring to the `<expanded_access_type_individual>` element.
@@ -686,6 +649,13 @@ class StudyDesignInfo(Base, OrmBase):
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
     )
 
     # Referring to the `<allocation>` element.
@@ -1899,7 +1869,7 @@ class ResponsibleParty(Base, OrmBase):
 
     # Referring to the value of the `<responsible_party_type>` attribute.
     responsible_party_type = sqlalchemy.Column(
-        name="responsible_party_type",
+        name="type",
         type_=sqlalchemy.types.Enum(ResponsiblePartyType),
         nullable=False,
     )
@@ -1946,6 +1916,38 @@ class MeshTerm(Base, OrmBase):
         type_=sqlalchemy.types.Unicode(),
         nullable=False,
     )
+
+    # MD5 hash of the term.
+    md5 = sqlalchemy.Column(
+        name="md5",
+        type_=sqlalchemy.types.Binary(),
+        unique=True,
+        index=True,
+        nullable=False,
+    )
+
+    # Relationship to a list of `Study` records.
+    studies = sqlalchemy.orm.relationship(
+        argument="Study",
+        secondary="study_mesh_terms",
+        back_populates="mesh_terms"
+    )
+
+    @sqlalchemy.orm.validates("term")
+    def update_md5(self, key, value):
+
+        # Dumb hack to make the linter shut up that the `key` isn't used.
+        assert key
+
+        # Encode the term to UTF8 (in case it contains unicode characters).
+        term_encoded = str(value).encode("utf-8")
+
+        # Calculate the MD5 hash of the encoded term and store under the
+        # `md5` attribute.
+        md5 = hashlib.md5(term_encoded).digest()
+        self.md5 = md5
+
+        return value
 
 
 class PatientData(Base, OrmBase):
@@ -2470,4 +2472,1177 @@ class BaselineMeasure(Base, OrmBase):
     )
 
 
+class EventCount(Base, OrmBase):
+    """Table of `<event_count>` element records."""
 
+    # set table name
+    __tablename__ = "event_counts"
+
+    # Autoincrementing primary key ID.
+    event_count_id = sqlalchemy.Column(
+        name="event_count_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the group ID.
+    group_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("groups.group_id"),
+        name="group_id",
+        nullable=False,
+    )
+
+    # Referring to the value of the `<subjects_affected>` element.
+    subjects_affected = sqlalchemy.Column(
+        name="subjects_affected",
+        type_=sqlalchemy.types.Integer(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<subjects_at_risk>` element.
+    subjects_at_risk = sqlalchemy.Column(
+        name="subjects_at_risk",
+        type_=sqlalchemy.types.Integer(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<events>` element.
+    events = sqlalchemy.Column(
+        name="events",
+        type_=sqlalchemy.types.Integer(),
+        nullable=True,
+    )
+
+
+class Event(Base, OrmBase):
+    """Table of `<event>` element records."""
+
+    # set table name
+    __tablename__ = "events"
+
+    # Autoincrementing primary key ID.
+    event_id = sqlalchemy.Column(
+        name="event_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Referring to the value of the `<sub_title>` element.
+    sub_title = sqlalchemy.Column(
+        name="sub_title",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<assessment>` element.
+    assessment = sqlalchemy.Column(
+        name="assessment",
+        type_=sqlalchemy.types.Enum(EventAssessmentType),
+        nullable=True,
+        default=None,
+        index=True
+    )
+
+    # Referring to the value of the `<description>` element.
+    description = sqlalchemy.Column(
+        name="description",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Relationship to a list of `EventCount` records.
+    counts = sqlalchemy.orm.relationship(
+        argument="EventCount",
+        secondary="event_event_counts",
+        back_populates="event"
+    )
+
+
+class EventEventCount(Base, OrmBase):
+    """Associative table between `Event` and `EventCount` records."""
+
+    # set table name
+    __tablename__ = "event_event_counts"
+
+    # Autoincrementing primary key ID.
+    event_event_count_id = sqlalchemy.Column(
+        name="event_event_count_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the event ID.
+    event_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("events.event_id"),
+        name="event_id",
+        nullable=False,
+    )
+
+    # Foreign key to the event-count ID.
+    event_count_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("event_counts.event_count_id"),
+        name="event_count_id",
+        nullable=False,
+    )
+
+
+class EventCategory(Base, OrmBase):
+    """Table of `<event_category>` element records."""
+
+    # set table name
+    __tablename__ = "event_categories"
+
+    # Autoincrementing primary key ID.
+    event_category_id = sqlalchemy.Column(
+        name="event_category_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Referring to the value of the `<title>` element.
+    title = sqlalchemy.Column(
+        name="title",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Relationship to a list of `Event` records.
+    events = sqlalchemy.orm.relationship(
+        argument="Event",
+        secondary="event_category_events",
+        back_populates="event_category"
+    )
+
+
+class EventCategoryEvent(Base, OrmBase):
+    """Associative table between `EventCategory` and `Event` records."""
+
+    # set table name
+    __tablename__ = "event_category_events"
+
+    # Autoincrementing primary key ID.
+    event_category_event_id = sqlalchemy.Column(
+        name="event_category_event_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the event-category ID.
+    event_category_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("event_catgories.event_category_id"),
+        name="event_category_id",
+        nullable=False,
+    )
+
+    # Foreign key to the event ID.
+    event_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("events.event_id"),
+        name="event_id",
+        nullable=False,
+    )
+
+
+class EventList(Base, OrmBase):
+    """Table of `<events>` element records."""
+
+    # set table name
+    __tablename__ = "event_lists"
+
+    # Autoincrementing primary key ID.
+    event_list_id = sqlalchemy.Column(
+        name="event_list_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Referring to the value of the `<frequency_threshold>` element.
+    frequency_threshold = sqlalchemy.Column(
+        name="frequency_threshold",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<default_vocab>` element.
+    default_vocab = sqlalchemy.Column(
+        name="default_vocab",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<default_assessment>` element.
+    default_assessment = sqlalchemy.Column(
+        name="default_assessment",
+        type_=sqlalchemy.types.Enum(EventAssessmentType),
+        nullable=True,
+        default=None,
+        index=True
+    )
+
+    # Relationship to a list of `EventCategory` records.
+    event_categories = sqlalchemy.orm.relationship(
+        argument="EventCategory",
+        secondary="event_list_categories",
+        back_populates="event_list"
+    )
+
+
+class EventListCategories(Base, OrmBase):
+    """Associative table between `EventList` and `EventCategory` records."""
+
+    # set table name
+    __tablename__ = "event_list_categories"
+
+    # Autoincrementing primary key ID.
+    event_list_category_id = sqlalchemy.Column(
+        name="event_list_category_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the event-list ID.
+    event_list_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("event_lists.event_list_id"),
+        name="event_list_id",
+        nullable=False,
+    )
+
+    # Foreign key to the event-category ID.
+    event_category_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("event_categories.event_category_id"),
+        name="event_category_id",
+        nullable=False,
+    )
+
+
+class ReportedEvent(Base, OrmBase):
+    """Table of `<reported_events>` element records."""
+
+    # set table name
+    __tablename__ = "reported_events"
+
+    # Autoincrementing primary key ID.
+    reported_event_id = sqlalchemy.Column(
+        name="reported_event_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Referring to the value of the `<time_frame>` element.
+    time_frame = sqlalchemy.Column(
+        name="time_frame",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<desc>` element.
+    desc = sqlalchemy.Column(
+        name="desc",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Relationship to a list of `Group` records.
+    groups = sqlalchemy.orm.relationship(
+        argument="Group",
+        secondary="reported_event_groups",
+        back_populates="event_reported"
+    )
+
+    # Foreign key to an event-list ID.
+    serious_event_list_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("event_list.event_list_id"),
+        name="serious_event_list_id",
+        nullable=False,
+    )
+
+    # Foreign key to an event-list ID.
+    other_event_list_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("event_list.event_list_id"),
+        name="other_event_list_id",
+        nullable=False,
+    )
+
+    # Relationship to a `EventList` record for the 'serious events'.
+    serious_event_list = sqlalchemy.orm.relationship(
+        argument="EventList",
+        foreign_keys=["serious_event_list_id"]
+    )
+
+    # Relationship to a `EventList` record for the 'other events'.
+    other_event_list = sqlalchemy.orm.relationship(
+        argument="EventList",
+        foreign_keys=["other_event_list_id"]
+    )
+
+
+class ReportedEventGroup(Base, OrmBase):
+    """Associative table between `ReportedEvent` and `Group` records."""
+
+    # set table name
+    __tablename__ = "reported_event_groups"
+
+    # Autoincrementing primary key ID.
+    reported_event_group_id = sqlalchemy.Column(
+        name="reported_event_group_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the reported-event ID.
+    reported_event_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("reported_events.reported_event_id"),
+        name="reported_event_id",
+        nullable=False,
+    )
+
+    # Foreign key to the group ID.
+    group_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("groups.group_id"),
+        name="group_id",
+        nullable=False,
+    )
+
+
+class StudyDates(Base, OrmBase):
+    """Table of secondary dates pertaining to a `<clinical_study>` element
+    record."""
+
+    # set table name
+    __tablename__ = "study_dates"
+
+    # Autoincrementing primary key ID.
+    study_dates_id = sqlalchemy.Column(
+        name="study_dates_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Referring to the value of the `<study_first_submitted>` element.
+    study_first_submitted = sqlalchemy.Column(
+        name="study_first_submitted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<study_first_submitted_qc>` element.
+    study_first_submitted_qc = sqlalchemy.Column(
+        name="study_first_submitted_qc",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<study_first_posted>` element.
+    study_first_posted = sqlalchemy.Column(
+        name="study_first_posted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<results_first_submitted>` element.
+    results_first_submitted = sqlalchemy.Column(
+        name="results_first_submitted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<results_first_submitted_qc>` element.
+    results_first_submitted_qc = sqlalchemy.Column(
+        name="results_first_submitted_qc",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<results_first_posted>` element.
+    results_first_posted = sqlalchemy.Column(
+        name="results_first_posted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<disposition_first_submitted>` element.
+    disposition_first_submitted = sqlalchemy.Column(
+        name="disposition_first_submitted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<disposition_first_submitted_qc>` element.
+    disposition_first_submitted_qc = sqlalchemy.Column(
+        name="disposition_first_submitted_qc",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<disposition_first_posted>` element.
+    disposition_first_posted = sqlalchemy.Column(
+        name="disposition_first_posted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<last_update_submitted>` element.
+    last_update_submitted = sqlalchemy.Column(
+        name="last_update_submitted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<last_update_submitted_qc>` element.
+    last_update_submitted_qc = sqlalchemy.Column(
+        name="last_update_submitted_qc",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<last_update_posted>` element.
+    last_update_posted = sqlalchemy.Column(
+        name="last_update_posted",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<verification_date>` element.
+    verification_date = sqlalchemy.Column(
+        name="verification_date",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+
+class Study(Base, OrmBase):
+    """Table of `<clinical_study>` element records."""
+
+    # set table name
+    __tablename__ = "studies"
+
+    # Autoincrementing primary key ID.
+    study_id = sqlalchemy.Column(
+        name="study_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Referring to the value of the `<org_study_id>` element.
+    org_study_id = sqlalchemy.Column(
+        name="org_study_id",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<secondary_id>` element.
+    secondary_id = sqlalchemy.Column(
+        name="secondary_id",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<nct_id>` element.
+    nct_id = sqlalchemy.Column(
+        name="nct_id",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Relationship to a list of `Alias` records.
+    aliases = sqlalchemy.orm.relationship(
+        argument="Alias",
+        secondary="study_aliases",
+        back_populates="study"
+    )
+
+    # Referring to the value of the `<brief_title>` element.
+    brief_title = sqlalchemy.Column(
+        name="brief_title",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=False,
+    )
+
+    # Referring to the value of the `<acronym>` element.
+    acronym = sqlalchemy.Column(
+        name="acronym",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<official_title>` element.
+    official_title = sqlalchemy.Column(
+        name="official_title",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Relationship to a list of `Sponsor` records.
+    sponsors = sqlalchemy.orm.relationship(
+        argument="Sponsor",
+        secondary="study_sponsor",
+        back_populates="studies"
+    )
+
+    # Referring to the value of the `<source>` element.
+    source = sqlalchemy.Column(
+        name="source",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Foreign key to the oversight-info ID.
+    oversight_info_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("study_oversight_infos.oversight_info_id"),
+        name="oversight_info_id",
+        nullable=False,
+    )
+
+    # Relationship to a list of `OversightInfo` records.
+    oversight_info = sqlalchemy.orm.relationship(
+        argument="OversightInfo",
+        back_populates="study"
+    )
+
+    # Referring to the value of the `<brief_summary>` element.
+    brief_summary = sqlalchemy.Column(
+        name="brief_summary",
+        type_=sqlalchemy.types.UnicodeText(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<detailed_description>` element.
+    detailed_description = sqlalchemy.Column(
+        name="detailed_description",
+        type_=sqlalchemy.types.UnicodeText(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<overall_status>` element.
+    overall_status = sqlalchemy.Column(
+        name="overall_status",
+        type_=sqlalchemy.types.Enum(OverallStatusType),
+        nullable=False,
+        index=True
+    )
+
+    # Referring to the value of the `<last_known_status>` element.
+    last_known_status = sqlalchemy.Column(
+        name="last_known_status",
+        type_=sqlalchemy.types.Enum(OverallStatusType),
+        nullable=False,
+        index=True
+    )
+
+    # Referring to the value of the `<why_stopped>` element.
+    why_stopped = sqlalchemy.Column(
+        name="why_stopped",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<start_date>` element.
+    start_date = sqlalchemy.Column(
+        name="start_date",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<completion_date>` element.
+    completion_date = sqlalchemy.Column(
+        name="completion_date",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<primary_completion_date>` element.
+    primary_completion_date = sqlalchemy.Column(
+        name="primary_completion_date",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
+    # Referring to the value of the `<phase>` element.
+    phase = sqlalchemy.Column(
+        name="phase",
+        type_=sqlalchemy.types.Enum(PhaseType),
+        nullable=False,
+        index=True
+    )
+
+    # Referring to the value of the `<study_type>` element.
+    study_type = sqlalchemy.Column(
+        name="study_type",
+        type_=sqlalchemy.types.Enum(StudyType),
+        nullable=False,
+        index=True
+    )
+
+    # Foreign key to the expanded-access-info ID.
+    expanded_access_info_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey(
+            "study_expanded_access_infos.expanded_access_info_id"
+        ),
+        name="expanded_access_info_id",
+        nullable=True,
+    )
+
+    # Relationship to a list of `ExpandedAccessInfo` records.
+    study_expanded_info = sqlalchemy.orm.relationship(
+        argument="ExpandedAccessInfo",
+        back_populates="study"
+    )
+
+    # Foreign key to the study-design-info ID.
+    study_design_info_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("study_design_infos.study_design_info_id"),
+        name="study_design_info_id",
+        nullable=True,
+    )
+
+    # Relationship to a list of `StudyDesignInfo` records.
+    study_design_info = sqlalchemy.orm.relationship(
+        argument="StudyDesignInfo",
+        back_populates="study"
+    )
+
+    # Foreign key to the study-dates ID.
+    study_dates_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("study_dates.study_dates_id"),
+        name="study_dates_id",
+        nullable=False,
+    )
+
+    # Relationship to a list of `StudyDates` records.
+    study_dates = sqlalchemy.orm.relationship(
+        argument="StudyDates",
+        back_populates="study"
+    )
+
+    # Referring to the value of the `<target_duration>` element.
+    target_duration = sqlalchemy.Column(
+        name="target_duration",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Relationship to a list of `ProtocolOutcome` records.
+    outcomes = sqlalchemy.orm.relationship(
+        argument="StudyOutcome",
+        secondary="study_outcomes",
+        back_populates="study"
+    )
+
+    # Foreign key to the enrollment ID.
+    enrollment_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("enrollments.enrollment_id"),
+        name="enrollment_id",
+        nullable=False,
+    )
+
+    # Relationship to a list of `Enrollment` records.
+    enrollment = sqlalchemy.orm.relationship(
+        argument="Enrollment",
+        back_populates="study"
+    )
+
+    # TODO: `condition`
+
+    # Relationship to a list of `ArmGroup` records.
+    arm_groups = sqlalchemy.orm.relationship(
+        argument="ArmGroup",
+        secondary="study_arm_groups",
+        back_populates="study"
+    )
+
+    # Relationship to a list of `Intervention` records.
+    interventions = sqlalchemy.orm.relationship(
+        argument="Intervention",
+        secondary="study_interventions",
+        back_populates="study"
+    )
+
+    # Referring to the value of the `<biospec_retention>` element.
+    biospec_retention = sqlalchemy.Column(
+        name="biospec_retention",
+        type_=sqlalchemy.types.Enum(BiospecRetentionType),
+        nullable=False,
+        index=True
+    )
+
+    # Referring to the value of the `<biospec_desc>` element.
+    biospec_description = sqlalchemy.Column(
+        name="biospec_description",
+        type_=sqlalchemy.types.Unicode(),
+        nullable=True,
+    )
+
+    # Foreign key to the elligibility ID.
+    elligibility_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("eligibilities.elligibility_id"),
+        name="elligibility_id",
+        nullable=False,
+    )
+
+    # Relationship to an `Elligibility` record.
+    elligibility = sqlalchemy.orm.relationship(
+        argument="Elligibility",
+        back_populates="study"
+    )
+
+    # Relationship to a list of `Investigator` records.
+    investigators = sqlalchemy.orm.relationship(
+        argument="Investigator",
+        secondary="study_investigators",
+        back_populates="studies"
+    )
+
+    # Foreign key to a contact ID of 'primary' type.
+    contact_primary_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("contacts.contact_id"),
+        name="contact_primary_id",
+        nullable=False,
+    )
+
+    # Relationship to a `Contact` record of 'primary' type.
+    contact_primary = sqlalchemy.orm.relationship(
+        argument="Contact",
+        back_populates="studies",
+        foreign_keys=["contact_primary_id"],
+    )
+
+    # Foreign key to a contact ID of 'backup' type.
+    contact_backup_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("contacts.contact_id"),
+        name="contact_backup_id",
+        nullable=False,
+    )
+
+    # Relationship to a `Contact` record of 'backup' type.
+    contact_backup = sqlalchemy.orm.relationship(
+        argument="Contact",
+        back_populates="studies",
+        foreign_keys=["contact_backup_id"]
+    )
+
+    # Relationship to a list of `Location` records.
+    locations = sqlalchemy.orm.relationship(
+        argument="Location",
+        secondary="study_locations",
+        back_populates="studies"
+    )
+
+    # TODO: location_countries
+    # TODO: removed_countries
+    # Skipping link`
+
+    # Relationship to a list of `Reference` records.
+    references = sqlalchemy.orm.relationship(
+        argument="Reference",
+        secondary="study_references",
+        back_populates="study"
+    )
+
+    # Relationship to a list of `Keyword` records.
+    keywords = sqlalchemy.orm.relationship(
+        argument="Keyword",
+        secondary="study_keywords",
+        back_populates="studies"
+    )
+
+    # Foreign key to a responsible-party ID.
+    responsible_party_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("responsible_parties.responsible_party_id"),
+        name="responsible_party_id",
+        nullable=False,
+    )
+
+    # Relationship to a `ResponsibleParty` record.
+    responsible_party = sqlalchemy.orm.relationship(
+        argument="ResponsibleParty",
+        back_populates="study",
+    )
+
+    # Relationship to a list of `MeshTerm` records.
+    mesh_terms = sqlalchemy.orm.relationship(
+        argument="MeshTerm",
+        secondary="study_mesh_terms",
+        back_populates="studies"
+    )
+
+    # Foreign key to a patient-data ID.
+    patient_data_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("patient_datas.patient_data_id"),
+        name="patient_data_id",
+        nullable=True,
+    )
+
+    # Relationship to a `PatientData` record.
+    patient_data = sqlalchemy.orm.relationship(
+        argument="PatientData",
+        back_populates="study",
+    )
+
+    # Relationship to a list of `StudyDoc` records.
+    study_docs = sqlalchemy.orm.relationship(
+        argument="StudyDoc",
+        secondary="study_study_docs",
+        back_populates="study"
+    )
+
+    # TODO: clinical_results
+
+
+class StudyAlias(Base, OrmBase):
+    """Associative table between `Study` and `Alias` records."""
+
+    # set table name
+    __tablename__ = "study_aliases"
+
+    # Autoincrementing primary key ID.
+    study_alias_id = sqlalchemy.Column(
+        name="study_alias_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the alias ID.
+    alias_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("aliases.alias_id"),
+        name="alias_id",
+        nullable=False,
+    )
+
+
+class StudySponsor(Base, OrmBase):
+    """Associative table between `Study` and `Sponsor` records."""
+
+    # set table name
+    __tablename__ = "study_sponsors"
+
+    # Autoincrementing primary key ID.
+    study_sponsor_id = sqlalchemy.Column(
+        name="study_sponsor_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the sponsor ID.
+    sponsor_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("sponsors.sponsor_id"),
+        name="sponsor_id",
+        nullable=False,
+    )
+
+
+class StudyOutcome(Base, OrmBase):
+    """Associative table between `Study` and `ProtocolOutcome` records."""
+
+    # set table name
+    __tablename__ = "study_outcomes"
+
+    # Autoincrementing primary key ID.
+    study_primary_outcome_id = sqlalchemy.Column(
+        name="study_primary_outcome_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the protocol-outcome ID.
+    protocol_outcome_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("protocol_outcomes.protocol_outcome_id"),
+        name="protocol_outcome_id",
+        nullable=False,
+    )
+
+    # Referring to the type of outcome.
+    outcome_type = sqlalchemy.Column(
+        name="type",
+        type_=sqlalchemy.types.Enum(OutcomeType),
+        nullable=False,
+        index=True
+    )
+
+
+class StudyArmGroup(Base, OrmBase):
+    """Associative table between `Study` and `ArmGroup` records."""
+
+    # set table name
+    __tablename__ = "study_arm_groups"
+
+    # Autoincrementing primary key ID.
+    study_arm_group_id = sqlalchemy.Column(
+        name="study_arm_group_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the arm-group ID.
+    arm_group_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("arm_groups.arm_group_id"),
+        name="arm_group_id",
+        nullable=False,
+    )
+
+
+class StudyIntervention(Base, OrmBase):
+    """Associative table between `Study` and `Intervention` records."""
+
+    # set table name
+    __tablename__ = "study_interventions"
+
+    # Autoincrementing primary key ID.
+    study_intervention_id = sqlalchemy.Column(
+        name="study_intervention_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the intervention ID.
+    intervention_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("interventions.intervention_id"),
+        name="intervention_id",
+        nullable=False,
+    )
+
+
+class StudyIntestigators(Base, OrmBase):
+    """Associative table between `Study` and `Investigator` records."""
+
+    # set table name
+    __tablename__ = "study_investigators"
+
+    # Autoincrementing primary key ID.
+    study_investigator_id = sqlalchemy.Column(
+        name="study_investigator_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the investigator ID.
+    investigator_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("investigators.investigator_id"),
+        name="investigator_id",
+        nullable=False,
+    )
+
+
+class StudyLocations(Base, OrmBase):
+    """Associative table between `Study` and `Location` records."""
+
+    # set table name
+    __tablename__ = "study_locations"
+
+    # Autoincrementing primary key ID.
+    study_location_id = sqlalchemy.Column(
+        name="study_location_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the location ID.
+    location_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("locations.location_id"),
+        name="location_id",
+        nullable=False,
+    )
+
+
+class StudyReference(Base, OrmBase):
+    """Associative table between `Study` and `Reference` records."""
+
+    # set table name
+    __tablename__ = "study_references"
+
+    # Autoincrementing primary key ID.
+    study_reference_id = sqlalchemy.Column(
+        name="study_reference_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the reference ID.
+    reference_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("references.reference_id"),
+        name="reference_id",
+        nullable=False,
+    )
+
+    # Referring to the type of reference.
+    reference_type = sqlalchemy.Column(
+        name="type",
+        type_=sqlalchemy.types.Enum(ReferenceType),
+        nullable=False,
+        index=True
+    )
+
+
+class StudyKeyword(Base, OrmBase):
+    """Associative table between `Study` and `Keyword` records."""
+
+    # set table name
+    __tablename__ = "study_keywords"
+
+    # Autoincrementing primary key ID.
+    study_keyword_id = sqlalchemy.Column(
+        name="study_keyword_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the keyword ID.
+    keyword_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("keywords.keyword_id"),
+        name="keyword_id",
+        nullable=False,
+    )
+
+
+class StudyMeshTerm(Base, OrmBase):
+    """Associative table between `Study` and `MeshTerm` records."""
+
+    # set table name
+    __tablename__ = "study_mesh_terms"
+
+    # Autoincrementing primary key ID.
+    study_mesh_term_id = sqlalchemy.Column(
+        name="study_mesh_term_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the mesh-term ID.
+    mesh_term_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("mesh_terms.mesh_term_id"),
+        name="mesh_term_id",
+        nullable=False,
+    )
+
+    # Referring to the type of mesh-term.
+    mesh_term_type = sqlalchemy.Column(
+        name="type",
+        type_=sqlalchemy.types.Enum(MeshTermType),
+        nullable=False,
+        index=True
+    )
+
+
+class StudyStudyDoc(Base, OrmBase):
+    """Associative table between `Study` and `StudyDoc` records."""
+
+    # set table name
+    __tablename__ = "study_study_docs"
+
+    # Autoincrementing primary key ID.
+    study_study_doc_id = sqlalchemy.Column(
+        name="study_study_doc_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the study-doc ID.
+    study_doc_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("study_docs.study_doc_id"),
+        name="study_doc_id",
+        nullable=False,
+    )
