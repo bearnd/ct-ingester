@@ -134,6 +134,62 @@ class Keyword(Base, OrmBase):
         return value
 
 
+class Condition(Base, OrmBase):
+    """Table of `<condition>` element records."""
+
+    # set table name
+    __tablename__ = "conditions"
+
+    # Autoincrementing primary key ID.
+    condition_id = sqlalchemy.Column(
+        name="condition_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Condition name (value of the `<condition>` element).
+    condition = sqlalchemy.Column(
+        name="condition",
+        type_=sqlalchemy.types.Unicode(),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
+    # MD5 hash of the keyword.
+    md5 = sqlalchemy.Column(
+        name="md5",
+        type_=sqlalchemy.types.Binary(),
+        unique=True,
+        index=True,
+        nullable=False,
+    )
+
+    # Relationship to a list of `Study` records.
+    studies = sqlalchemy.orm.relationship(
+        argument="Study",
+        secondary="study_conditions",
+        back_populates="conditions"
+    )
+
+    @sqlalchemy.orm.validates("condition")
+    def update_md5(self, key, value):
+
+        # Dumb hack to make the linter shut up that the `key` isn't used.
+        assert key
+
+        # Encode the condition to UTF8 (in case it contains unicode characters).
+        condition_encoded = str(value).encode("utf-8")
+
+        # Calculate the MD5 hash of the encoded condition and store under the
+        # `md5` attribute.
+        md5 = hashlib.md5(condition_encoded).digest()
+        self.md5 = md5
+
+        return value
+
+
 class Facility(Base, OrmBase):
     """Table of `<facility>` elements and their underlying `<address>` element
     records."""
@@ -501,54 +557,18 @@ class LocationInvestigator(Base, OrmBase):
     )
 
 
-class StudyLocation(Base, OrmBase):
-    """Associative table between `Study` and `Location` records."""
-
-    # set table name
-    __tablename__ = "study_locations"
-
-    # Autoincrementing primary key ID.
-    study_location_id = sqlalchemy.Column(
-        name="study_location_d",
-        type_=sqlalchemy.types.BigInteger(),
-        primary_key=True,
-        autoincrement="auto",
-    )
-
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
-    )
-
-    # Foreign key to the location ID.
-    location_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("locations.location_id"),
-        name="location_id",
-        nullable=False,
-    )
-
-
-class StudyOversightInfo(Base, OrmBase):
+class OversightInfo(Base, OrmBase):
     """Table of `<oversight_info>` elements records."""
 
     # set table name
-    __tablename__ = "study_oversight_infos"
+    __tablename__ = "oversight_infos"
 
     # Autoincrementing primary key ID.
     oversight_info_id = sqlalchemy.Column(
-        name="study_oversight_info_id",
+        name="oversight_info_id",
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
-    )
-
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
     )
 
     # Referring to the `<has_dmc>` element.
@@ -594,25 +614,18 @@ class StudyOversightInfo(Base, OrmBase):
     )
 
 
-class StudyExpandedAccessInfo(Base, OrmBase):
+class ExpandedAccessInfo(Base, OrmBase):
     """Table of `<expanded_access_info>` elements records."""
 
     # set table name
-    __tablename__ = "study_expanded_access_infos"
+    __tablename__ = "expanded_access_infos"
 
     # Autoincrementing primary key ID.
-    study_expanded_access_info_id = sqlalchemy.Column(
-        name="study_expanded_access_info_id",
+    expanded_access_info_id = sqlalchemy.Column(
+        name="expanded_access_info_id",
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
-    )
-
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
     )
 
     # Referring to the `<expanded_access_type_individual>` element.
@@ -649,13 +662,6 @@ class StudyDesignInfo(Base, OrmBase):
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
-    )
-
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
     )
 
     # Referring to the `<allocation>` element.
@@ -2827,13 +2833,6 @@ class StudyDates(Base, OrmBase):
         autoincrement="auto",
     )
 
-    # Foreign key to the study ID.
-    study_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("studies.study_id"),
-        name="study_id",
-        nullable=False,
-    )
-
     # Referring to the value of the `<study_first_submitted>` element.
     study_first_submitted = sqlalchemy.Column(
         name="study_first_submitted",
@@ -2918,13 +2917,6 @@ class StudyDates(Base, OrmBase):
         nullable=True,
     )
 
-    # Referring to the value of the `<verification_date>` element.
-    verification_date = sqlalchemy.Column(
-        name="verification_date",
-        type_=sqlalchemy.types.Date(),
-        nullable=True,
-    )
-
 
 class Study(Base, OrmBase):
     """Table of `<clinical_study>` element records."""
@@ -3005,7 +2997,7 @@ class Study(Base, OrmBase):
 
     # Foreign key to the oversight-info ID.
     oversight_info_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("study_oversight_infos.oversight_info_id"),
+        sqlalchemy.ForeignKey("oversight_infos.oversight_info_id"),
         name="oversight_info_id",
         nullable=False,
     )
@@ -3074,6 +3066,13 @@ class Study(Base, OrmBase):
         nullable=True,
     )
 
+    # Referring to the value of the `<verification_date>` element.
+    verification_date = sqlalchemy.Column(
+        name="verification_date",
+        type_=sqlalchemy.types.Date(),
+        nullable=True,
+    )
+
     # Referring to the value of the `<phase>` element.
     phase = sqlalchemy.Column(
         name="phase",
@@ -3093,14 +3092,14 @@ class Study(Base, OrmBase):
     # Foreign key to the expanded-access-info ID.
     expanded_access_info_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey(
-            "study_expanded_access_infos.expanded_access_info_id"
+            "expanded_access_infos.expanded_access_info_id"
         ),
         name="expanded_access_info_id",
         nullable=True,
     )
 
     # Relationship to a list of `ExpandedAccessInfo` records.
-    study_expanded_info = sqlalchemy.orm.relationship(
+    expanded_info = sqlalchemy.orm.relationship(
         argument="ExpandedAccessInfo",
         back_populates="study"
     )
@@ -3118,19 +3117,6 @@ class Study(Base, OrmBase):
         back_populates="study"
     )
 
-    # Foreign key to the study-dates ID.
-    study_dates_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("study_dates.study_dates_id"),
-        name="study_dates_id",
-        nullable=False,
-    )
-
-    # Relationship to a list of `StudyDates` records.
-    study_dates = sqlalchemy.orm.relationship(
-        argument="StudyDates",
-        back_populates="study"
-    )
-
     # Referring to the value of the `<target_duration>` element.
     target_duration = sqlalchemy.Column(
         name="target_duration",
@@ -3140,7 +3126,7 @@ class Study(Base, OrmBase):
 
     # Relationship to a list of `ProtocolOutcome` records.
     outcomes = sqlalchemy.orm.relationship(
-        argument="StudyOutcome",
+        argument="ProtocolOutcome",
         secondary="study_outcomes",
         back_populates="study"
     )
@@ -3158,7 +3144,12 @@ class Study(Base, OrmBase):
         back_populates="study"
     )
 
-    # TODO: `condition`
+    # Relationship to a list of `Condition` records.
+    conditions = sqlalchemy.orm.relationship(
+        argument="Condition",
+        secondary="study_conditions",
+        back_populates="studies"
+    )
 
     # Relationship to a list of `ArmGroup` records.
     arm_groups = sqlalchemy.orm.relationship(
@@ -3255,11 +3246,17 @@ class Study(Base, OrmBase):
         back_populates="study"
     )
 
-    # Relationship to a list of `Keyword` records.
-    keywords = sqlalchemy.orm.relationship(
-        argument="Keyword",
-        secondary="study_keywords",
-        back_populates="studies"
+    # Foreign key to the study-dates ID.
+    study_dates_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("study_dates.study_dates_id"),
+        name="study_dates_id",
+        nullable=False,
+    )
+
+    # Relationship to a list of `StudyDates` records.
+    study_dates = sqlalchemy.orm.relationship(
+        argument="StudyDates",
+        back_populates="study"
     )
 
     # Foreign key to a responsible-party ID.
@@ -3273,6 +3270,13 @@ class Study(Base, OrmBase):
     responsible_party = sqlalchemy.orm.relationship(
         argument="ResponsibleParty",
         back_populates="study",
+    )
+
+    # Relationship to a list of `Keyword` records.
+    keywords = sqlalchemy.orm.relationship(
+        argument="Keyword",
+        secondary="study_keywords",
+        back_populates="studies"
     )
 
     # Relationship to a list of `MeshTerm` records.
@@ -3400,6 +3404,35 @@ class StudyOutcome(Base, OrmBase):
     )
 
 
+class StudyCondition(Base, OrmBase):
+    """Associative table between `Study` and `Condition` records."""
+
+    # set table name
+    __tablename__ = "study_conditions"
+
+    # Autoincrementing primary key ID.
+    study_condition_id = sqlalchemy.Column(
+        name="study_condition_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the study ID.
+    study_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("studies.study_id"),
+        name="study_id",
+        nullable=False,
+    )
+
+    # Foreign key to the condition ID.
+    condition_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("conditions.condition_id"),
+        name="condition_id",
+        nullable=False,
+    )
+
+
 class StudyArmGroup(Base, OrmBase):
     """Associative table between `Study` and `ArmGroup` records."""
 
@@ -3487,7 +3520,7 @@ class StudyIntestigators(Base, OrmBase):
     )
 
 
-class StudyLocations(Base, OrmBase):
+class StudyLocation(Base, OrmBase):
     """Associative table between `Study` and `Location` records."""
 
     # set table name
