@@ -250,3 +250,17 @@ class InvestigatorType(EnumBase):
 
     LOCATION = "location"
     OVERALL = "overall"
+
+
+class ReferenceType(EnumBase):
+    """Enumeration of the reference types."""
+
+    STANDARD = "Standard"
+    RESULTS = "Results"
+
+
+class MeshTermType(EnumBase):
+    """Enumeration of the mesh-term types."""
+
+    CONDITION = "Condition"
+    INTERVENTION = "Intervention"
