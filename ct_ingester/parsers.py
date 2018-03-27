@@ -24,6 +24,7 @@ from ct_ingester.orm_enums import RoleType
 from ct_ingester.orm_enums import RecruitmentStatusType
 from ct_ingester.orm_enums import ReferenceType
 from ct_ingester.orm_enums import ResponsiblePartyType
+from ct_ingester.orm_enums import MeshTermType
 
 
 class ParserXmlBase(object):
@@ -1014,6 +1015,152 @@ class ParserXmlClinicaStudy(ParserXmlBase):
 
         return responsible_party
 
+    def parse_keywords(
+        self,
+        element_clinical_study: etree.Element,
+    ) -> list:
+        """Extracts and parses `<keyword>` elements from a `<clinical_study>`
+        element and returns the values of the contained elements.
+
+        Args:
+            element_clinical_study (etree.Element): The `<clinical_study>`
+                element.
+
+        Returns:
+            dict: The parsed values of the contained elements.
+        """
+
+        keywords = []
+
+        if element_clinical_study is None:
+            return keywords
+
+        for _element in element_clinical_study.findall("keyword"):
+            keywords.append(self._et(_element))
+
+        return keywords
+
+    def parse_mesh_terms(
+        self,
+        element_clinical_study: etree.Element,
+    ) -> list:
+        """Extracts and parses elements of type `<browse_struct>` from
+        a `<clinical_study>` element and returns the values of the contained
+        elements.
+
+        Args:
+            element_clinical_study (etree.Element): The `<clinical_study>`
+                element.
+
+        Returns:
+            dict: The parsed values of the contained elements.
+        """
+
+        mesh_terms = []
+
+        if element_clinical_study is None:
+            return mesh_terms
+
+        _element_condition_browse = element_clinical_study.find(
+            "condition_browse"
+        )
+        if _element_condition_browse is not None:
+            for _element in _element_condition_browse.findall("mesh_term"):
+                mesh_term = {
+                    "type": MeshTermType.CONDITION,
+                    "mesh_term": self._et(_element),
+                }
+                mesh_terms.append(mesh_term)
+
+        _element_intervention_browse = element_clinical_study.find(
+            "intervention_browse"
+        )
+        if _element_intervention_browse is not None:
+            for _element in _element_intervention_browse.findall("mesh_term"):
+                mesh_term = {
+                    "type": MeshTermType.CONDITION,
+                    "mesh_term": self._et(_element),
+                }
+                mesh_terms.append(mesh_term)
+
+        return mesh_terms
+
+    def parse_patient_data(
+        self,
+        element: etree.Element,
+    ) -> dict:
+        """Parses an element of type `patient_data_struct` and returns the
+        values of the contained elements.
+
+        Args:
+            element (etree.Element): The element of type
+                `patient_data_struct`.
+
+        Returns:
+            dict: The parsed values of the contained elements.
+        """
+
+        if element is None:
+            return {}
+
+        patient_data = {
+            "sharing_ipd": self._et(element.find("sharing_ipd")),
+            "ipd_description": self._et(element.find("ipd_description")),
+        }
+
+        return patient_data
+
+    def parse_study_doc(
+        self,
+        element: etree.Element,
+    ) -> dict:
+        """Parses an element of type `study_doc_struct` and returns the
+        values of the contained elements.
+
+        Args:
+            element (etree.Element): The element of type `study_doc_struct`.
+
+        Returns:
+            dict: The parsed values of the contained elements.
+        """
+
+        if element is None:
+            return {}
+
+        study_doc = {
+            "doc_id": self._et(element.find("doc_id")),
+            "doc_type": self._et(element.find("doc_type")),
+            "doc_url": self._et(element.find("doc_url")),
+            "doc_comment": self._et(element.find("doc_comment")),
+        }
+
+        return study_doc
+
+    def parse_study_docs(
+        self,
+        element: etree.Element,
+    ) -> list:
+        """Extracts and parses elements of type `<study_docs_struct>` from
+        a `<clinical_study>` element and returns the values of the contained
+        elements.
+
+        Args:
+            element (etree.Element): The element of type `study_docs_struct`.
+
+        Returns:
+            dict: The parsed values of the contained elements.
+        """
+
+        study_docs = []
+
+        if element is None:
+            return study_docs
+
+        for _element in element.findall("study_doc"):
+            study_docs.append(self.parse_study_doc(_element))
+
+        return study_docs
+
     def parse_clinical_study(self, element):
 
         if element is None:
@@ -1082,7 +1229,14 @@ class ParserXmlClinicaStudy(ParserXmlBase):
                 element.find("verification_date")
             ),
             "study_dates": self.parse_study_dates(element),
-
+            "responsible_party": self.parse_responsible_party(
+                element.find("responsible_party")
+            ),
+            "keywords": self.parse_keywords(element),
+            "mesh_terms": self.parse_mesh_terms(element),
+            "study_docs": self.parse_study_docs(
+                element.find("study_docs_struct")
+            ),
         }
 
         return clinical_study
