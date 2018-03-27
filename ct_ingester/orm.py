@@ -904,7 +904,7 @@ class Analysis(Base, OrmBase):
 
     # Referring to the `<dispersion_type>` element.
     dispersion_type = sqlalchemy.Column(
-        name="non_inferiority_type",
+        name="dispersion_type",
         type_=sqlalchemy.types.Enum(AnalysisDispersionType),
         nullable=True,
         default=None,
