@@ -1425,15 +1425,15 @@ class MeasureMeasureClass(Base, OrmBase):
     )
 
 
-class ResultsOutcome(Base, OrmBase):
+class ResultOutcome(Base, OrmBase):
     """Table of `<results_outcome>` element records."""
 
     # set table name
-    __tablename__ = "results_outcomes"
+    __tablename__ = "result_outcomes"
 
     # Autoincrementing primary key ID.
-    results_outcome_id = sqlalchemy.Column(
-        name="results_outcome_id",
+    result_outcome_id = sqlalchemy.Column(
+        name="result_outcome_id",
         type_=sqlalchemy.types.BigInteger(),
         primary_key=True,
         autoincrement="auto",
@@ -1493,8 +1493,8 @@ class ResultsOutcome(Base, OrmBase):
     # Relationship to a list of `Group` records.
     groups = sqlalchemy.orm.relationship(
         argument="Group",
-        secondary="results_outcome_groups",
-        back_populates="results_outcome"
+        secondary="result_outcome_groups",
+        back_populates="result_outcome"
     )
 
     # Relationship to a `Measure` record.
@@ -1505,8 +1505,8 @@ class ResultsOutcome(Base, OrmBase):
     # Relationship to a list of `Analysis` records.
     analyses = sqlalchemy.orm.relationship(
         argument="Analysis",
-        secondary="results_outcome_analyses",
-        back_populates="results_outcome"
+        secondary="result_outcome_analyses",
+        back_populates="result_outcome"
     )
 
 
@@ -1989,7 +1989,7 @@ class StudyDoc(Base, OrmBase):
     """Table of `<study_doc>` element records."""
 
     # set table name
-    __tablename__ = "study_doc"
+    __tablename__ = "study_docs"
 
     # Autoincrementing primary key ID.
     study_doc_id = sqlalchemy.Column(
@@ -2032,7 +2032,7 @@ class Participant(Base, OrmBase):
     """Table of `<participants>` element records."""
 
     # set table name
-    __tablename__ = "participant"
+    __tablename__ = "participants"
 
     # Autoincrementing primary key ID.
     participant_id = sqlalchemy.Column(
@@ -2068,7 +2068,7 @@ class Milestone(Base, OrmBase):
     """Table of `<milestone>` element records."""
 
     # set table name
-    __tablename__ = "milestone"
+    __tablename__ = "milestones"
 
     # Autoincrementing primary key ID.
     milestone_id = sqlalchemy.Column(
@@ -2155,7 +2155,7 @@ class Period(Base, OrmBase):
     """Table of `<period>` element records."""
 
     # set table name
-    __tablename__ = "period"
+    __tablename__ = "periods"
 
     # Autoincrementing primary key ID.
     period_id = sqlalchemy.Column(
@@ -2640,7 +2640,7 @@ class EventCategoryEvent(Base, OrmBase):
 
     # Foreign key to the event-category ID.
     event_category_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("event_catgories.event_category_id"),
+        sqlalchemy.ForeignKey("event_categories.event_category_id"),
         name="event_category_id",
         nullable=False,
     )
@@ -2764,14 +2764,14 @@ class ReportedEvent(Base, OrmBase):
 
     # Foreign key to an event-list ID.
     serious_event_list_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("event_list.event_list_id"),
+        sqlalchemy.ForeignKey("event_lists.event_list_id"),
         name="serious_event_list_id",
         nullable=False,
     )
 
     # Foreign key to an event-list ID.
     other_event_list_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("event_list.event_list_id"),
+        sqlalchemy.ForeignKey("event_lists.event_list_id"),
         name="other_event_list_id",
         nullable=False,
     )
@@ -3181,9 +3181,9 @@ class Study(Base, OrmBase):
     )
 
     # Foreign key to the elligibility ID.
-    elligibility_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("eligibilities.elligibility_id"),
-        name="elligibility_id",
+    eligibility_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("eligibilities.eligibility_id"),
+        name="eligibility_id",
         nullable=False,
     )
 
