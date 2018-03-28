@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e420fde5aa4c
+Revision ID: e37dbf3a53cb
 Revises: 
-Create Date: 2018-03-28 07:53:22.581341
+Create Date: 2018-03-28 12:13:49.171931
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e420fde5aa4c'
+revision = 'e37dbf3a53cb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -116,9 +116,9 @@ def upgrade():
     op.create_index(op.f('ix_events_assessment'), 'events', ['assessment'], unique=False)
     op.create_table('expanded_access_infos',
     sa.Column('expanded_access_info_id', sa.BigInteger(), nullable=False),
-    sa.Column('expanded_access_type_individual', sa.Boolean(), nullable=True),
-    sa.Column('expanded_access_type_intermediate', sa.Boolean(), nullable=True),
-    sa.Column('expanded_access_type_treatment', sa.Boolean(), nullable=True),
+    sa.Column('individual', sa.Boolean(), nullable=True),
+    sa.Column('intermediate', sa.Boolean(), nullable=True),
+    sa.Column('treatment', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('expanded_access_info_id')
     )
     op.create_table('facilities',
