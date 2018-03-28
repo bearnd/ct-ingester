@@ -630,21 +630,21 @@ class ExpandedAccessInfo(Base, OrmBase):
 
     # Referring to the `<expanded_access_type_individual>` element.
     expanded_access_type_individual = sqlalchemy.Column(
-        name="expanded_access_type_individual",
+        name="individual",
         type_=sqlalchemy.types.Boolean(),
         nullable=True
     )
 
     # Referring to the `<expanded_access_type_intermediate>` element.
     expanded_access_type_intermediate = sqlalchemy.Column(
-        name="expanded_access_type_intermediate",
+        name="intermediate",
         type_=sqlalchemy.types.Boolean(),
         nullable=True
     )
 
     # Referring to the `<expanded_access_type_treatment>` element.
     expanded_access_type_treatment = sqlalchemy.Column(
-        name="expanded_access_type_treatment",
+        name="treatment",
         type_=sqlalchemy.types.Boolean(),
         nullable=True
     )
