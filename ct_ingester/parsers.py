@@ -256,7 +256,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             "agency_class": AgencyClassType.get_member(
                 self._et(element.find("agency_class"))
             ),
-            "sponsor_type": None
+            "type": None
         }
 
         # Assign the appropriate sponsor-type enumeration value based on the
@@ -995,18 +995,18 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             return {}
 
         responsible_party = {
-            "name_title": self.parse_facility(element.find("name_title")),
-            "organization": self.parse_facility(element.find("organization")),
+            "name_title": self._et(element.find("name_title")),
+            "organization": self._et(element.find("organization")),
             "responsible_party_type": ResponsiblePartyType.get_member(
                 self._et(element.find("responsible_party_type"))
             ),
-            "investigator_affiliation": self.parse_facility(
+            "investigator_affiliation": self._et(
                 element.find("investigator_affiliation")
             ),
-            "investigator_full_name": self.parse_facility(
+            "investigator_full_name": self._et(
                 element.find("investigator_full_name")
             ),
-            "investigator_title": self.parse_facility(
+            "investigator_title": self._et(
                 element.find("investigator_title")
             ),
         }
@@ -1233,6 +1233,9 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             ),
             "keywords": self.parse_keywords(element),
             "mesh_terms": self.parse_mesh_terms(element),
+            "patient_data": self.parse_patient_data(
+                element.find("patient_data")
+            ),
             "study_docs": self.parse_study_docs(
                 element.find("study_docs_struct")
             ),
