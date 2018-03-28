@@ -25,6 +25,7 @@ from ct_ingester.orm_enums import RecruitmentStatusType
 from ct_ingester.orm_enums import ReferenceType
 from ct_ingester.orm_enums import ResponsiblePartyType
 from ct_ingester.orm_enums import MeshTermType
+from ct_ingester.orm_enums import AgencyClassType
 
 
 class ParserXmlBase(object):
@@ -146,12 +147,12 @@ class ParserXmlClinicaStudy(ParserXmlBase):
                 undefined.
         """
 
-        if not element:
+        if element is None:
             return None
 
         element_textblock = element.find("textblock")
 
-        if not element_textblock:
+        if element_textblock is None:
             return None
 
         textblock = self._et(element_textblock)
@@ -252,7 +253,9 @@ class ParserXmlClinicaStudy(ParserXmlBase):
 
         sponsor = {
             "agency": self._et(element.find("agency")),
-            "agency_class": self._et(element.find("agency_class")),
+            "agency_class": AgencyClassType.get_member(
+                self._et(element.find("agency_class"))
+            ),
             "sponsor_type": None
         }
 
@@ -268,7 +271,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
     def parse_sponsors(
         self,
         element: etree.Element,
-    ) -> dict:
+    ) -> list:
         """Parses an element of type `sponsors_struct` and returns the values of
         the contained elements.
 
@@ -279,16 +282,13 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             dict: The parsed values of the contained elements.
         """
 
-        if element is None:
-            return {}
+        sponsors = []
 
-        sponsors = {
-            "sponsors": [
-                {
-                    "sponsor": self.parse_sponsor(_element)
-                } for _element in element.getchildren()
-            ],
-        }
+        if element is None:
+            return sponsors
+
+        for _element in element.getchildren():
+            sponsors.append(self.parse_sponsor(_element))
 
         return sponsors
 
@@ -593,12 +593,10 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             "description": self._et(element.find("description")),
             "arm_group_labels": [{
                 "arm_group_label": self._et(_element)
-                for _element in element.findall("arm_group_label")
-            }],
+            } for _element in element.findall("arm_group_label")],
             "other_names": [{
                 "other_name": self._et(_element)
-                for _element in element.findall("other_name")
-            }],
+            } for _element in element.findall("other_name")],
         }
 
         return intervention
@@ -655,10 +653,10 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             "criteria": self._etb(element.find("criteria")),
             "gender": GenderType.get_member(self._et(element.find("gender"))),
             "gender_based": self._yn_to_bool(element.find("gender_based")),
-            "gender_description": self._etb(element.find("gender_description")),
-            "minimum_age": self._etb(element.find("minimum_age")),
-            "maximum_age": self._etb(element.find("maximum_age")),
-            "healthy_volunteers": self._etb(element.find("healthy_volunteers")),
+            "gender_description": self._et(element.find("gender_description")),
+            "minimum_age": self._et(element.find("minimum_age")),
+            "maximum_age": self._et(element.find("maximum_age")),
+            "healthy_volunteers": self._et(element.find("healthy_volunteers")),
         }
 
         return eligibility
@@ -715,7 +713,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             return investigators
 
         for _element in elements_investigators:
-            investigators.append(self.parse_intervention(_element))
+            investigators.append(self.parse_investigator(_element))
 
         return investigators
 
@@ -1205,13 +1203,14 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             "target_duration": self._et(element.find("target_duration")),
             "protocol_outcomes": self.parse_protocol_outcomes(element),
             "enrollment": self.parse_enrollment(element.find("enrollment")),
+            "conditions": self.parse_conditions(element),
             "arm_groups": self.parse_arm_groups(element),
             "interventions": self.parse_interventions(element),
             "biospec_retention": BiospecRetentionType.get_member(
                 self._et(element.find("biospec_retention"))
             ),
-            "biospec_description": self._et(
-                element.find("biospec_description")
+            "biospec_descr": self._etb(
+                element.find("biospec_descr")
             ),
             "eligibility": self.parse_eligibility(element.find("eligibility")),
             "overall_officials": self.parse_investigators(
