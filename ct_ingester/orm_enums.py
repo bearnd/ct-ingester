@@ -10,7 +10,7 @@ class ActualType(EnumBase):
 
     ACTUAL = "Actual"
     ANTICIPATED = "Anticipated"
-    ESTIMATE = "Estimated"
+    ESTIMATE = "Estimate"
 
 
 class YesNoType(EnumBase):
