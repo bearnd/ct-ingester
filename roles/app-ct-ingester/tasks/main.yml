@@ -50,7 +50,7 @@
   copy:
     src: "{{ item }}"
     dest: "//etc/postgresql/9.5/main/{{ item }}"
-    owner: "{{ app_ct_ingester.user }}"
+    owner: "postgres"
     mode: 0600
   with_items:
     - "pg_hba.conf"
