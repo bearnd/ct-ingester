@@ -39,6 +39,10 @@ from ct_ingester.orm import InterventionArmGroup
 from ct_ingester.orm import Eligibility
 from ct_ingester.orm import Reference
 from ct_ingester.orm import ResponsibleParty
+from ct_ingester.orm import MeshTerm
+from ct_ingester.orm import PatientData
+from ct_ingester.orm import StudyDoc
+from ct_ingester.orm import Participant
 from ct_ingester.orm_enums import AgencyClassType
 from ct_ingester.orm_enums import SponsorType
 from ct_ingester.orm_enums import RoleType
@@ -1158,6 +1162,285 @@ class DalClinicalTrials(DalBase):
             values={
                 "intervention_id": intervention_id,
                 "arm_group_id": arm_group_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_eligibility(
+        self,
+        study_pop: str,
+        sampling_method: SamplingMethodType,
+        criteria: str,
+        gender: GenderType,
+        gender_based: bool,
+        gender_description: str,
+        minimum_age: str,
+        maximum_age: str,
+        healthy_volunteers: str,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `Eligibility` record in an IODI manner.
+
+        Args:
+            study_pop (str): The eligibility study population.
+            sampling_method (SamplingMethodType): The eligibility sampling
+                method type.
+            criteria (str): The eligibility study population.
+            gender (GenderType): The eligibility gender-type.
+            gender_based (bool): Whether the study is gender-based.
+            gender_description (str): The eligibility gender description.
+            minimum_age (str): The eligibility minimum-age.
+            maximum_age (str): The eligibility maximum-age.
+            healthy_volunteers (str): The description of healthy volunteers in
+                the study.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `Eligibility` record.
+        """
+
+        statement = insert(
+            Eligibility,
+            values={
+                "study_pop": study_pop,
+                "sampling_method": sampling_method,
+                "criteria": criteria,
+                "gender": gender,
+                "gender_based": gender_based,
+                "gender_description": gender_description,
+                "minimum_age": minimum_age,
+                "maximum_age": maximum_age,
+                "healthy_volunteers": healthy_volunteers,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_reference(
+        self,
+        citation: str,
+        pmid: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `Reference` record in an IODI manner.
+
+        Args:
+            citation (str): The citation.
+            pmid (int): The reference PMID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `Reference` record.
+        """
+
+        statement = insert(
+            Reference,
+            values={
+                "citation": citation,
+                "pmid": pmid,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_responsible_party(
+        self,
+        name_title: str,
+        organization: str,
+        responsible_party_type: ResponsiblePartyType,
+        investigator_affiliation: str,
+        investigator_full_name: str,
+        investigator_title: str,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `ResponsibleParty` record in an IODI manner.
+
+        Args:
+            name_title (str): The name/title of the responsible party.
+            organization (str): The organization of the responsible party.
+            responsible_party_type (ResponsiblePartyType): The type of the
+                responsible party.
+            investigator_affiliation (str): The investigator affiliation of the
+                responsible party.
+            investigator_full_name (str): The investigator full name of the
+                responsible party.
+            investigator_title (str): The investigator title of the
+                responsible party.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `ResponsibleParty` record.
+        """
+
+        statement = insert(
+            ResponsibleParty,
+            values={
+                "name_title": name_title,
+                "organization": organization,
+                "type": responsible_party_type,
+                "investigator_affiliation": investigator_affiliation,
+                "investigator_full_name": investigator_full_name,
+                "investigator_title": investigator_title,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_mesh_term(
+        self,
+        term: str,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `MeshTerm` record in an IODI manner.
+
+        Args:
+            term (str): The MeSH term.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `MeshTerm` record.
+        """
+
+        statement = insert(
+            MeshTerm,
+            values={
+                "term": term,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_patient_data(
+        self,
+        sharing_ipd: str,
+        ipd_description: str,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `PatientData` record in an IODI manner.
+
+        Args:
+            sharing_ipd (str): The sharing IPD.
+            ipd_description (str): The IPD description.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `PatientData` record.
+        """
+
+        statement = insert(
+            PatientData,
+            values={
+                "sharing_ipd": sharing_ipd,
+                "ipd_description": ipd_description,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_doc(
+        self,
+        doc_id: str,
+        doc_type: str,
+        doc_url: str,
+        doc_comment: str,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyDoc` record in an IODI manner.
+
+        Args:
+            doc_id (str): The study-doc ID.
+            doc_type (str): The study-doc type.
+            doc_url (str): The study-doc URL.
+            doc_comment (str): The study-doc comment.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyDoc` record.
+        """
+
+        statement = insert(
+            StudyDoc,
+            values={
+                "doc_id": doc_id,
+                "doc_type": doc_type,
+                "doc_url": doc_url,
+                "doc_comment": doc_comment,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_participant(
+        self,
+        group_id: int,
+        count: int,
+        doc_url: str,
+        doc_comment: str,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `Participant` record in an IODI manner.
+
+        Args:
+            doc_id (str): The study-doc ID.
+            doc_type (str): The study-doc type.
+            doc_url (str): The study-doc URL.
+            doc_comment (str): The study-doc comment.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `Participant` record.
+        """
+
+        statement = insert(
+            Participant,
+            values={
+                "doc_id": doc_id,
+                "doc_type": doc_type,
+                "doc_url": doc_url,
+                "doc_comment": doc_comment,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
