@@ -54,7 +54,7 @@ from ct_ingester.orm_enums import GenderType
 from ct_ingester.orm_enums import ResponsiblePartyType
 
 
-class DalPubmed(DalBase):
+class DalClinicalTrials(DalBase):
     def __init__(
         self,
         sql_username,
@@ -71,7 +71,7 @@ class DalPubmed(DalBase):
             logger_level=kwargs.get("logger_level", "DEBUG")
         )
 
-        super(DalPubmed, self).__init__(
+        super(DalClinicalTrials, self).__init__(
             sql_username=sql_username,
             sql_password=sql_password,
             sql_host=sql_host,
