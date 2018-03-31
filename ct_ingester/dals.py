@@ -1176,7 +1176,7 @@ class DalClinicalTrials(DalBase):
         """
 
         statement = insert(
-            InterventionAlias,
+            InterventionArmGroup,
             values={
                 "intervention_id": intervention_id,
                 "arm_group_id": arm_group_id,
