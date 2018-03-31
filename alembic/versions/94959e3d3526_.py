@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e37dbf3a53cb
+Revision ID: 94959e3d3526
 Revises: 
-Create Date: 2018-03-28 12:13:49.171931
+Create Date: 2018-03-31 21:36:46.549174
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e37dbf3a53cb'
+revision = '94959e3d3526'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -562,7 +562,7 @@ def upgrade():
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('org_study_id', sa.Unicode(), nullable=True),
     sa.Column('secondary_id', sa.Unicode(), nullable=True),
-    sa.Column('nct_id', sa.Unicode(), nullable=True),
+    sa.Column('nct_id', sa.Unicode(), nullable=False),
     sa.Column('brief_title', sa.Unicode(), nullable=False),
     sa.Column('acronym', sa.Unicode(), nullable=True),
     sa.Column('official_title', sa.Unicode(), nullable=True),
@@ -601,7 +601,8 @@ def upgrade():
     sa.ForeignKeyConstraint(['responsible_party_id'], ['responsible_parties.responsible_party_id'], ),
     sa.ForeignKeyConstraint(['study_dates_id'], ['study_dates.study_dates_id'], ),
     sa.ForeignKeyConstraint(['study_design_info_id'], ['study_design_infos.study_design_info_id'], ),
-    sa.PrimaryKeyConstraint('study_id')
+    sa.PrimaryKeyConstraint('study_id'),
+    sa.UniqueConstraint('nct_id')
     )
     op.create_index(op.f('ix_studies_biospec_retention'), 'studies', ['biospec_retention'], unique=False)
     op.create_index(op.f('ix_studies_last_known_status'), 'studies', ['last_known_status'], unique=False)

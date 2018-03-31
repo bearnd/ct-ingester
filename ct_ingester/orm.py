@@ -794,35 +794,6 @@ class Group(Base, OrmBase):
     )
 
 
-class ResultOutcomeGroup(Base, OrmBase):
-    """Associative table between `ResultOutcome` and `Group` records."""
-
-    # set table name
-    __tablename__ = "result_outcome_groups"
-
-    # Autoincrementing primary key ID.
-    result_outcome_group_id = sqlalchemy.Column(
-        name="result_outcome_group_id",
-        type_=sqlalchemy.types.BigInteger(),
-        primary_key=True,
-        autoincrement="auto",
-    )
-
-    # Foreign key to the resut-outcome ID.
-    result_outcome_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("result_outcomes.result_outcome_id"),
-        name="result_outcome_id",
-        nullable=False,
-    )
-
-    # Foreign key to the group ID.
-    group_id = sqlalchemy.Column(
-        sqlalchemy.ForeignKey("groups.group_id"),
-        name="group_id",
-        nullable=False,
-    )
-
-
 class Analysis(Base, OrmBase):
     """Table of `<analysis>` element records."""
 
@@ -1510,6 +1481,35 @@ class ResultOutcome(Base, OrmBase):
     )
 
 
+class ResultOutcomeGroup(Base, OrmBase):
+    """Associative table between `ResultOutcome` and `Group` records."""
+
+    # set table name
+    __tablename__ = "result_outcome_groups"
+
+    # Autoincrementing primary key ID.
+    result_outcome_group_id = sqlalchemy.Column(
+        name="result_outcome_group_id",
+        type_=sqlalchemy.types.BigInteger(),
+        primary_key=True,
+        autoincrement="auto",
+    )
+
+    # Foreign key to the resut-outcome ID.
+    result_outcome_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("result_outcomes.result_outcome_id"),
+        name="result_outcome_id",
+        nullable=False,
+    )
+
+    # Foreign key to the group ID.
+    group_id = sqlalchemy.Column(
+        sqlalchemy.ForeignKey("groups.group_id"),
+        name="group_id",
+        nullable=False,
+    )
+
+
 class Enrollment(Base, OrmBase):
     """Table of `<enrollment>` element records."""
 
@@ -2057,7 +2057,7 @@ class Participant(Base, OrmBase):
     )
 
     # Relationship to a `Milestone` record.
-    participants = sqlalchemy.orm.relationship(
+    milestones = sqlalchemy.orm.relationship(
         argument="Milestone",
         secondary="milestone_participants",
         back_populates="participants"
@@ -2950,7 +2950,8 @@ class Study(Base, OrmBase):
     nct_id = sqlalchemy.Column(
         name="nct_id",
         type_=sqlalchemy.types.Unicode(),
-        nullable=True,
+        nullable=False,
+        unique=True,
     )
 
     # Relationship to a list of `Alias` records.
@@ -3491,7 +3492,7 @@ class StudyIntervention(Base, OrmBase):
     )
 
 
-class StudyIntestigators(Base, OrmBase):
+class StudyInvestigator(Base, OrmBase):
     """Associative table between `Study` and `Investigator` records."""
 
     # set table name
