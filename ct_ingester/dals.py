@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+
 import sqlalchemy.orm
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.dialects.postgresql import Insert
@@ -42,7 +44,19 @@ from ct_ingester.orm import ResponsibleParty
 from ct_ingester.orm import MeshTerm
 from ct_ingester.orm import PatientData
 from ct_ingester.orm import StudyDoc
-from ct_ingester.orm import Participant
+from ct_ingester.orm import Study
+from ct_ingester.orm import StudyAlias
+from ct_ingester.orm import StudySponsor
+from ct_ingester.orm import StudyOutcome
+from ct_ingester.orm import StudyCondition
+from ct_ingester.orm import StudyArmGroup
+from ct_ingester.orm import StudyIntervention
+from ct_ingester.orm import StudyInvestigator
+from ct_ingester.orm import StudyLocation
+from ct_ingester.orm import StudyReference
+from ct_ingester.orm import StudyKeyword
+from ct_ingester.orm import StudyMeshTerm
+from ct_ingester.orm import StudyStudyDoc
 from ct_ingester.orm_enums import AgencyClassType
 from ct_ingester.orm_enums import SponsorType
 from ct_ingester.orm_enums import RoleType
@@ -56,6 +70,10 @@ from ct_ingester.orm_enums import InterventionType
 from ct_ingester.orm_enums import SamplingMethodType
 from ct_ingester.orm_enums import GenderType
 from ct_ingester.orm_enums import ResponsiblePartyType
+from ct_ingester.orm_enums import OverallStatusType
+from ct_ingester.orm_enums import PhaseType
+from ct_ingester.orm_enums import StudyType
+from ct_ingester.orm_enums import BiospecRetentionType
 
 
 class DalClinicalTrials(DalBase):
@@ -1410,37 +1428,529 @@ class DalClinicalTrials(DalBase):
         return result.inserted_primary_key
 
     @with_session_scope()
-    def iodi_participant(
+    def iodi_study(
         self,
-        group_id: int,
-        count: int,
-        doc_url: str,
-        doc_comment: str,
+        org_study_id: str,
+        secondary_id: str,
+        nct_id: str,
+        brief_title: str,
+        acronym: str,
+        official_title: str,
+        source: str,
+        oversight_info_id: int,
+        brief_summary: str,
+        detailed_description: str,
+        overall_status:  OverallStatusType,
+        last_known_status: OverallStatusType,
+        why_stopped: str,
+        start_date: datetime.date,
+        completion_date: datetime.date,
+        primary_completion_date: datetime.date,
+        verification_date: datetime.date,
+        phase: PhaseType,
+        study_type: StudyType,
+        expanded_access_info_id: int,
+        study_design_info_id: int,
+        target_duration: str,
+        enrollment_id: int,
+        biospec_retention: BiospecRetentionType,
+        biospec_description: str,
+        eligibility_id: int,
+        contact_primary_id: int,
+        contact_backup_id: int,
+        study_dates_id: int,
+        responsible_party_id: int,
+        patient_data_id: int,
         session: sqlalchemy.orm.Session = None,
     ) -> int:
-        """Creates a new `Participant` record in an IODI manner.
+        """Creates a new `Study` record in an IODI manner.
 
         Args:
-            doc_id (str): The study-doc ID.
-            doc_type (str): The study-doc type.
-            doc_url (str): The study-doc URL.
-            doc_comment (str): The study-doc comment.
+            org_study_id (str): The organizational study ID.
+            secondary_id (str): A secondary study ID.
+            nct_id (str): The NCT study ID.
+            brief_title (str): A brief study title.
+            acronym (str): The study acronym.
+            official_title (str): The official study title.
+            source (str): The study source.
+            oversight_info_id (int): The linked `OversightInfo` record
+                primary-key ID.
+            brief_summary (str): The brief study summary.
+            detailed_description (str): The detailed summary description.
+            overall_status: (OverallStatusType): The study overall status.
+            last_known_status (OverallStatusType): THe study last-known status.
+            why_stopped (str): Why the study was stopped (if applicable).
+            start_date: (datetime.date): The date the study will start.
+            completion_date: (datetime.date): The date the study will be
+                completed.
+            primary_completion_date: (datetime.date): The date of the study
+                primary-completion.
+            verification_date: (datetime.date): The date the study will be
+                verified.
+            phase (PhaseType): The study phase.
+            study_type (StudyType): The study type.
+            expanded_access_info_id (int): The linked `ExpandedAccessInfo`
+                record primary-key ID.
+            study_design_info_id (int): The linked `StudyDesignInfo` record
+                primary-key ID.
+            target_duration (str): The study target duration.
+            enrollment_id (int): The linked `Enrollment` record primary-key ID.
+            biospec_retention (BiospecRetentionType): The study
+                biospec-retention type.
+            biospec_description (str): The study biospec description.
+            eligibility_id (int): The linked `Eligibility` record
+                primary-key ID.
+            contact_primary_id (int): The linked `Contact` record
+                primary-key ID for the study's primary contact.
+            contact_backup_id (int): The linked `Contact` record
+                primary-key ID for the study's backup contact.
+            study_dates_id (int): The linked `StudyDates` record
+                primary-key ID.
+            responsible_party_id (int): The linked `ResponsibleParty` record
+                primary-key ID.
+            patient_data_id (int): The linked `Patientdata` record
+                primary-key ID.
             session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
                 through which the record will be added. Defaults to `None` in
                 which case a new session is automatically created and terminated
                 upon completion.
 
         Returns:
-            int: The primary key ID of the `Participant` record.
+            int: The primary key ID of the `Study` record.
         """
 
         statement = insert(
-            Participant,
+            Study,
             values={
-                "doc_id": doc_id,
-                "doc_type": doc_type,
-                "doc_url": doc_url,
-                "doc_comment": doc_comment,
+                "org_study_id": org_study_id,
+                "secondary_id": secondary_id,
+                "nct_id": nct_id,
+                "brief_title": brief_title,
+                "acronym": acronym,
+                "official_title": official_title,
+                "source": source,
+                "oversight_info_id": oversight_info_id,
+                "brief_summary": brief_summary,
+                "detailed_description": detailed_description,
+                "overall_status": overall_status,
+                "last_known_status": last_known_status,
+                "why_stopped": why_stopped,
+                "start_date": start_date,
+                "completion_date": completion_date,
+                "primary_completion_date": primary_completion_date,
+                "verification_date": verification_date,
+                "phase": phase,
+                "study_type": study_type,
+                "expanded_access_info_id": expanded_access_info_id,
+                "study_design_info_id": study_design_info_id,
+                "target_duration": target_duration,
+                "enrollment_id": enrollment_id,
+                "biospec_retention": biospec_retention,
+                "biospec_description": biospec_description,
+                "eligibility_id": eligibility_id,
+                "contact_primary_id": contact_primary_id,
+                "contact_backup_id": contact_backup_id,
+                "study_dates_id": study_dates_id,
+                "responsible_party_id": responsible_party_id,
+                "patient_data_id": patient_data_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_alias(
+        self,
+        study_id: int,
+        alias_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyAlias` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            alias_id (int): The linked `Alias` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyAlias` record.
+        """
+
+        statement = insert(
+            StudyAlias,
+            values={
+                "study_id": study_id,
+                "alias_id": alias_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_sponsor(
+        self,
+        study_id: int,
+        sponsor_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudySponsor` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            sponsor_id (int): The linked `Sponsor` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudySponsor` record.
+        """
+
+        statement = insert(
+            StudySponsor,
+            values={
+                "study_id": study_id,
+                "sponsor_id": sponsor_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_outcome(
+        self,
+        study_id: int,
+        outcome_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyOutcome` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            outcome_id (int): The linked `Outcome` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyOutcome` record.
+        """
+
+        statement = insert(
+            StudyOutcome,
+            values={
+                "study_id": study_id,
+                "outcome_id": outcome_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_condition(
+        self,
+        study_id: int,
+        condition_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyCondition` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            condition_id (int): The linked `Condition` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyCondition` record.
+        """
+
+        statement = insert(
+            StudyCondition,
+            values={
+                "study_id": study_id,
+                "condition_id": condition_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_arm_group(
+        self,
+        study_id: int,
+        arm_group_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyArmGroup` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            arm_group_id (int): The linked `ArmGroup` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyArmGroup` record.
+        """
+
+        statement = insert(
+            StudyArmGroup,
+            values={
+                "study_id": study_id,
+                "arm_group_id": arm_group_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_intervention(
+        self,
+        study_id: int,
+        intervention_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyIntervention` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            intervention_id (int): The linked `Intervention` record primary-key
+                ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyIntervention` record.
+        """
+
+        statement = insert(
+            StudyIntervention,
+            values={
+                "study_id": study_id,
+                "intervention_id": intervention_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_investigator(
+        self,
+        study_id: int,
+        investigator_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyInvestigator` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            investigator_id (int): The linked `Investigator` record primary-key
+                ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyInvestigator` record.
+        """
+
+        statement = insert(
+            StudyInvestigator,
+            values={
+                "study_id": study_id,
+                "investigator_id": investigator_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_location(
+        self,
+        study_id: int,
+        location_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyLocation` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            location_id (int): The linked `Location` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyLocation` record.
+        """
+
+        statement = insert(
+            StudyLocation,
+            values={
+                "study_id": study_id,
+                "location_id": location_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_reference(
+        self,
+        study_id: int,
+        reference_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyReference` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            reference_id (int): The linked `Location` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyReference` record.
+        """
+
+        statement = insert(
+            StudyReference,
+            values={
+                "study_id": study_id,
+                "reference_id": reference_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_keyword(
+        self,
+        study_id: int,
+        keyword_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyKeyword` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            keyword_id (int): The linked `Keyword` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyKeyword` record.
+        """
+
+        statement = insert(
+            StudyKeyword,
+            values={
+                "study_id": study_id,
+                "keyword_id": keyword_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_mesh_term(
+        self,
+        study_id: int,
+        mesh_term_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyMeshTerm` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            mesh_term_id (int): The linked `MeshTerm` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyMeshTerm` record.
+        """
+
+        statement = insert(
+            StudyMeshTerm,
+            values={
+                "study_id": study_id,
+                "mesh_term_id": mesh_term_id,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_study_doc(
+        self,
+        study_id: int,
+        study_doc_id: int,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyStudyDoc` record in an IODI manner.
+
+        Args:
+            study_id (int): The linked `Study` record primary-key ID.
+            study_doc_id (int): The linked `StudyDoc` record primary-key ID.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyStudyDoc` record.
+        """
+
+        statement = insert(
+            StudyStudyDoc,
+            values={
+                "study_id": study_id,
+                "study_doc_id": study_doc_id,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
