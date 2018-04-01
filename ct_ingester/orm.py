@@ -119,7 +119,6 @@ class Keyword(Base, OrmBase):
 
     @sqlalchemy.orm.validates("keyword")
     def update_md5(self, key, value):
-
         # Dumb hack to make the linter shut up that the `key` isn't used.
         assert key
 
@@ -175,7 +174,6 @@ class Condition(Base, OrmBase):
 
     @sqlalchemy.orm.validates("condition")
     def update_md5(self, key, value):
-
         # Dumb hack to make the linter shut up that the `key` isn't used.
         assert key
 
@@ -261,7 +259,6 @@ class Facility(Base, OrmBase):
         "country",
     )
     def update_md5(self, key, value):
-
         attrs = {
             "name": self.name,
             "city": self.city,
@@ -344,7 +341,6 @@ class Person(Base, OrmBase):
         "name_last",
     )
     def update_md5(self, key, value):
-
         attrs = {
             "name_first": self.name_first,
             "name_middle": self.name_middle,
@@ -554,6 +550,10 @@ class LocationInvestigator(Base, OrmBase):
         sqlalchemy.ForeignKey("investigators.investigator_id"),
         name="investigator_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('location_id', 'investigator_id'),
     )
 
 
@@ -965,6 +965,10 @@ class AnalysisGroup(Base, OrmBase):
         sqlalchemy.ForeignKey("groups.group_id"),
         name="group_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('analysis_id', 'group_id'),
     )
 
 
@@ -1664,7 +1668,6 @@ class Alias(Base, OrmBase):
 
     @sqlalchemy.orm.validates("alias")
     def update_md5(self, key, value):
-
         # Dumb hack to make the linter shut up that the `key` isn't used.
         assert key
 
@@ -1707,6 +1710,10 @@ class InterventionAlias(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('intervention_id', 'alias_id'),
+    )
+
 
 class InterventionArmGroup(Base, OrmBase):
     """Associative table between `Intervention` and `ArmGroup` records."""
@@ -1734,6 +1741,10 @@ class InterventionArmGroup(Base, OrmBase):
         sqlalchemy.ForeignKey("arm_groups.arm_group_id"),
         name="arm_group_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('intervention_id', 'arm_group_id'),
     )
 
 
@@ -1941,7 +1952,6 @@ class MeshTerm(Base, OrmBase):
 
     @sqlalchemy.orm.validates("term")
     def update_md5(self, key, value):
-
         # Dumb hack to make the linter shut up that the `key` isn't used.
         assert key
 
@@ -2150,6 +2160,10 @@ class MilestoneParticipant(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('milestone_id', 'participant_id'),
+    )
+
 
 class Period(Base, OrmBase):
     """Table of `<period>` element records."""
@@ -2215,6 +2229,10 @@ class PeriodMilestone(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('period_id', 'milestone_id'),
+    )
+
 
 class PeriodDropWithdrawReason(Base, OrmBase):
     """Associative table between `Period` and `DropWithdrawReason` records."""
@@ -2244,6 +2262,10 @@ class PeriodDropWithdrawReason(Base, OrmBase):
         ),
         name="drop_withdraw_reason_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('period_id', 'drop_withdraw_reason_id'),
     )
 
 
@@ -2290,7 +2312,7 @@ class ParticipantFlow(Base, OrmBase):
     )
 
 
-class ParticipantFlowGroups(Base, OrmBase):
+class ParticipantFlowGroup(Base, OrmBase):
     """Associative table between `ParticipantFlow` and `Group` records."""
 
     # set table name
@@ -2318,8 +2340,12 @@ class ParticipantFlowGroups(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('participant_flow_id', 'group_id'),
+    )
 
-class ParticipantFlowPeriods(Base, OrmBase):
+
+class ParticipantFlowPeriod(Base, OrmBase):
     """Associative table between `ParticipantFlow` and `Period` records."""
 
     # set table name
@@ -2345,6 +2371,10 @@ class ParticipantFlowPeriods(Base, OrmBase):
         sqlalchemy.ForeignKey("periods.period_id"),
         name="period_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('participant_flow_id', 'period_id'),
     )
 
 
@@ -2391,7 +2421,7 @@ class Baseline(Base, OrmBase):
     )
 
 
-class BaselineGroups(Base, OrmBase):
+class BaselineGroup(Base, OrmBase):
     """Associative table between `Baseline` and `Group` records."""
 
     # set table name
@@ -2417,6 +2447,10 @@ class BaselineGroups(Base, OrmBase):
         sqlalchemy.ForeignKey("groups.group_id"),
         name="group_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('baseline_id', 'group_id'),
     )
 
 
@@ -2448,6 +2482,10 @@ class BaselineMeasureAnalyzed(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('baseline_id', 'measure_analyzed_id'),
+    )
+
 
 class BaselineMeasure(Base, OrmBase):
     """Associative table between `Baseline` and `Measure` records."""
@@ -2475,6 +2513,10 @@ class BaselineMeasure(Base, OrmBase):
         sqlalchemy.ForeignKey("measures.measure_id"),
         name="measure_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('baseline_id', 'measure_id'),
     )
 
 
@@ -2594,6 +2636,10 @@ class EventEventCount(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('event_id', 'event_count_id'),
+    )
+
 
 class EventCategory(Base, OrmBase):
     """Table of `<event_category>` element records."""
@@ -2650,6 +2696,10 @@ class EventCategoryEvent(Base, OrmBase):
         sqlalchemy.ForeignKey("events.event_id"),
         name="event_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('event_category_id', 'event_id'),
     )
 
 
@@ -2724,6 +2774,10 @@ class EventListCategories(Base, OrmBase):
         sqlalchemy.ForeignKey("event_categories.event_category_id"),
         name="event_category_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('event_list_id', 'event_category_id'),
     )
 
 
@@ -2815,6 +2869,10 @@ class ReportedEventGroup(Base, OrmBase):
         sqlalchemy.ForeignKey("groups.group_id"),
         name="group_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('reported_event_id', 'group_id'),
     )
 
 
@@ -3338,6 +3396,10 @@ class StudyAlias(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'alias_id'),
+    )
+
 
 class StudySponsor(Base, OrmBase):
     """Associative table between `Study` and `Sponsor` records."""
@@ -3365,6 +3427,10 @@ class StudySponsor(Base, OrmBase):
         sqlalchemy.ForeignKey("sponsors.sponsor_id"),
         name="sponsor_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'sponsor_id'),
     )
 
 
@@ -3404,6 +3470,10 @@ class StudyOutcome(Base, OrmBase):
         index=True
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'protocol_outcome_id'),
+    )
+
 
 class StudyCondition(Base, OrmBase):
     """Associative table between `Study` and `Condition` records."""
@@ -3431,6 +3501,10 @@ class StudyCondition(Base, OrmBase):
         sqlalchemy.ForeignKey("conditions.condition_id"),
         name="condition_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'condition_id'),
     )
 
 
@@ -3462,6 +3536,10 @@ class StudyArmGroup(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'arm_group_id'),
+    )
+
 
 class StudyIntervention(Base, OrmBase):
     """Associative table between `Study` and `Intervention` records."""
@@ -3489,6 +3567,10 @@ class StudyIntervention(Base, OrmBase):
         sqlalchemy.ForeignKey("interventions.intervention_id"),
         name="intervention_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'intervention_id'),
     )
 
 
@@ -3520,6 +3602,10 @@ class StudyInvestigator(Base, OrmBase):
         nullable=False,
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'investigator_id'),
+    )
+
 
 class StudyLocation(Base, OrmBase):
     """Associative table between `Study` and `Location` records."""
@@ -3547,6 +3633,10 @@ class StudyLocation(Base, OrmBase):
         sqlalchemy.ForeignKey("locations.location_id"),
         name="location_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'location_id'),
     )
 
 
@@ -3586,6 +3676,10 @@ class StudyReference(Base, OrmBase):
         index=True
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'reference_id'),
+    )
+
 
 class StudyKeyword(Base, OrmBase):
     """Associative table between `Study` and `Keyword` records."""
@@ -3613,6 +3707,10 @@ class StudyKeyword(Base, OrmBase):
         sqlalchemy.ForeignKey("keywords.keyword_id"),
         name="keyword_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'keyword_id'),
     )
 
 
@@ -3652,6 +3750,10 @@ class StudyMeshTerm(Base, OrmBase):
         index=True
     )
 
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'mesh_term_id'),
+    )
+
 
 class StudyStudyDoc(Base, OrmBase):
     """Associative table between `Study` and `StudyDoc` records."""
@@ -3679,4 +3781,8 @@ class StudyStudyDoc(Base, OrmBase):
         sqlalchemy.ForeignKey("study_docs.study_doc_id"),
         name="study_doc_id",
         nullable=False,
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('study_id', 'study_doc_id'),
     )
