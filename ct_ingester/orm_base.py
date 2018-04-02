@@ -14,8 +14,22 @@ import uuid
 import decimal
 from sqlalchemy.ext.declarative import declarative_base
 
+
+# Create schema metadata with a constraint naming convention so that all
+# constraints are named automatically based on the tables and columns they're
+# defined upon. This ensures that all constraints will be given a unique name
+# regardless of the backend database which allows for `alembic` to create
+# comprehensive migrations of the defined schemata.
+metadata = sqlalchemy.MetaData(
+    naming_convention={
+        "ix": "ix_%(column_0_label)s",
+        "uq": "uq_%(table_name)s_%(column_0_name)s",
+        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+        "pk": "pk_%(table_name)s"
+      }
+)
 # create declarative base
-Base = declarative_base()
+Base = declarative_base(metadata=metadata)
 
 
 class OrmBase(object):
