@@ -57,6 +57,7 @@ from ct_ingester.orm import StudyReference
 from ct_ingester.orm import StudyKeyword
 from ct_ingester.orm import StudyMeshTerm
 from ct_ingester.orm import StudyStudyDoc
+from ct_ingester.orm import StudyDates
 from ct_ingester.orm_enums import AgencyClassType
 from ct_ingester.orm_enums import SponsorType
 from ct_ingester.orm_enums import RoleType
@@ -1420,6 +1421,83 @@ class DalClinicalTrials(DalBase):
                 "doc_type": doc_type,
                 "doc_url": doc_url,
                 "doc_comment": doc_comment,
+            }
+        ).on_conflict_do_nothing()  # type: Insert
+
+        result = session.execute(statement)  # type: ResultProxy
+
+        return result.inserted_primary_key
+
+    @with_session_scope()
+    def iodi_study_dates(
+        self,
+        study_first_submitted: datetime.date,
+        study_first_submitted_qc: datetime.date,
+        study_first_posted: datetime.date,
+        results_first_submitted: datetime.date,
+        results_first_submitted_qc: datetime.date,
+        results_first_posted: datetime.date,
+        disposition_first_submitted: datetime.date,
+        disposition_first_submitted_qc: datetime.date,
+        disposition_first_posted: datetime.date,
+        last_update_submitted: datetime.date,
+        last_update_submitted_qc: datetime.date,
+        last_update_posted: datetime.date,
+        session: sqlalchemy.orm.Session = None,
+    ) -> int:
+        """Creates a new `StudyDates` record in an IODI manner.
+
+        Args:
+            study_first_submitted (datetime.date): The date the study was
+                submitted.
+            study_first_submitted_qc (datetime.date): The date the study was
+                submitted for quality-control.
+            study_first_posted (datetime.date): The date the study was
+                first-posted.
+            results_first_submitted (datetime.date): The date the results were
+                first-submitted.
+            results_first_submitted_qc (datetime.date): The date the results
+                were submitted for quality-control.
+            results_first_posted (datetime.date): The date the results were
+                first-posted.
+            disposition_first_submitted (datetime.date): The date the
+                disposition was first-submitted.
+            disposition_first_submitted_qc (datetime.date): The date the
+                disposition was first-submitted for quality-control.
+            disposition_first_posted (datetime.date): The date the
+                disposition was first-posted.
+            last_update_submitted (datetime.date): The date the latest update
+                was submitted.
+            last_update_submitted_qc (datetime.date): The date the latest update
+                was submitted for quality-control.
+            last_update_posted (datetime.date): The date the latest update
+                was posted.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            int: The primary key ID of the `StudyDates` record.
+        """
+
+        _dummy = disposition_first_submitted_qc
+
+        statement = insert(
+            StudyDates,
+            values={
+                "study_first_submitted": study_first_submitted,
+                "study_first_submitted_qc": study_first_submitted_qc,
+                "study_first_posted": study_first_posted,
+                "results_first_submitted": results_first_submitted,
+                "results_first_submitted_qc": results_first_submitted_qc,
+                "results_first_posted": results_first_posted,
+                "disposition_first_submitted": disposition_first_submitted,
+                "disposition_first_submitted_qc": _dummy,
+                "disposition_first_posted": disposition_first_posted,
+                "last_update_submitted": last_update_submitted,
+                "last_update_submitted_qc": last_update_submitted_qc,
+                "last_update_posted": last_update_posted,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
