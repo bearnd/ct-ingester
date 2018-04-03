@@ -75,6 +75,7 @@ from ct_ingester.orm_enums import OverallStatusType
 from ct_ingester.orm_enums import PhaseType
 from ct_ingester.orm_enums import StudyType
 from ct_ingester.orm_enums import BiospecRetentionType
+from ct_ingester.orm_enums import MeshTermType
 
 
 class DalClinicalTrials(DalBase):
@@ -1975,6 +1976,7 @@ class DalClinicalTrials(DalBase):
         self,
         study_id: int,
         mesh_term_id: int,
+        mesh_term_type: MeshTermType,
         session: sqlalchemy.orm.Session = None,
     ) -> int:
         """Creates a new `StudyMeshTerm` record in an IODI manner.
@@ -1982,6 +1984,7 @@ class DalClinicalTrials(DalBase):
         Args:
             study_id (int): The linked `Study` record primary-key ID.
             mesh_term_id (int): The linked `MeshTerm` record primary-key ID.
+            mesh_term_type (MeshTermType): The mesh-term type.
             session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
                 through which the record will be added. Defaults to `None` in
                 which case a new session is automatically created and terminated
@@ -1996,6 +1999,7 @@ class DalClinicalTrials(DalBase):
             values={
                 "study_id": study_id,
                 "mesh_term_id": mesh_term_id,
+                "type": mesh_term_type,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
