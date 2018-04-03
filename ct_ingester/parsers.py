@@ -1034,7 +1034,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             return keywords
 
         for _element in element_clinical_study.findall("keyword"):
-            keywords.append(self._et(_element))
+            keywords.append({"keyword": self._et(_element)})
 
         return keywords
 
