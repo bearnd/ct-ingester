@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 94959e3d3526
+Revision ID: cc7b0ebf3ec5
 Revises: 
-Create Date: 2018-03-31 21:36:46.549174
+Create Date: 2018-04-04 11:32:52.682999
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '94959e3d3526'
+revision = 'cc7b0ebf3ec5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,7 @@ def upgrade():
     sa.Column('alias_id', sa.BigInteger(), nullable=False),
     sa.Column('alias', sa.Unicode(), nullable=False),
     sa.Column('md5', sa.Binary(), nullable=False),
-    sa.PrimaryKeyConstraint('alias_id')
+    sa.PrimaryKeyConstraint('alias_id', name=op.f('pk_aliases'))
     )
     op.create_index(op.f('ix_aliases_md5'), 'aliases', ['md5'], unique=True)
     op.create_table('analyses',
@@ -45,7 +45,7 @@ def upgrade():
     sa.Column('ci_upper_limit_na_comment', sa.Unicode(), nullable=True),
     sa.Column('estimate_desc', sa.Unicode(), nullable=True),
     sa.Column('other_analysis_desc', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('analysis_id')
+    sa.PrimaryKeyConstraint('analysis_id', name=op.f('pk_analyses'))
     )
     op.create_index(op.f('ix_analyses_dispersion_type'), 'analyses', ['dispersion_type'], unique=False)
     op.create_index(op.f('ix_analyses_non_inferiority_type'), 'analyses', ['non_inferiority_type'], unique=False)
@@ -54,25 +54,25 @@ def upgrade():
     sa.Column('label', sa.Unicode(), nullable=False),
     sa.Column('type', sa.Unicode(), nullable=True),
     sa.Column('description', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('arm_group_id')
+    sa.PrimaryKeyConstraint('arm_group_id', name=op.f('pk_arm_groups'))
     )
     op.create_table('baselines',
     sa.Column('baseline_id', sa.BigInteger(), nullable=False),
     sa.Column('population', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('baseline_id')
+    sa.PrimaryKeyConstraint('baseline_id', name=op.f('pk_baselines'))
     )
     op.create_table('conditions',
     sa.Column('condition_id', sa.BigInteger(), nullable=False),
     sa.Column('condition', sa.Unicode(), nullable=False),
     sa.Column('md5', sa.Binary(), nullable=False),
-    sa.PrimaryKeyConstraint('condition_id')
+    sa.PrimaryKeyConstraint('condition_id', name=op.f('pk_conditions'))
     )
     op.create_index(op.f('ix_conditions_condition'), 'conditions', ['condition'], unique=True)
     op.create_index(op.f('ix_conditions_md5'), 'conditions', ['md5'], unique=True)
     op.create_table('drop_withdraw_reasons',
     sa.Column('drop_withdraw_reason_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('drop_withdraw_reason_id')
+    sa.PrimaryKeyConstraint('drop_withdraw_reason_id', name=op.f('pk_drop_withdraw_reasons'))
     )
     op.create_table('eligibilities',
     sa.Column('eligibility_id', sa.BigInteger(), nullable=False),
@@ -85,25 +85,25 @@ def upgrade():
     sa.Column('minimum_age', sa.Unicode(), nullable=True),
     sa.Column('maximum_age', sa.Unicode(), nullable=True),
     sa.Column('healthy_volunteers', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('eligibility_id')
+    sa.PrimaryKeyConstraint('eligibility_id', name=op.f('pk_eligibilities'))
     )
     op.create_table('enrollments',
     sa.Column('enrollment_id', sa.BigInteger(), nullable=False),
     sa.Column('value', sa.Integer(), nullable=False),
     sa.Column('type', sa.Enum('ACTUAL', 'ANTICIPATED', 'ESTIMATE', name='actualtype'), nullable=True),
-    sa.PrimaryKeyConstraint('enrollment_id')
+    sa.PrimaryKeyConstraint('enrollment_id', name=op.f('pk_enrollments'))
     )
     op.create_table('event_categories',
     sa.Column('event_category_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('event_category_id')
+    sa.PrimaryKeyConstraint('event_category_id', name=op.f('pk_event_categories'))
     )
     op.create_table('event_lists',
     sa.Column('event_list_id', sa.BigInteger(), nullable=False),
     sa.Column('frequency_threshold', sa.Unicode(), nullable=True),
     sa.Column('default_vocab', sa.Unicode(), nullable=True),
     sa.Column('default_assessment', sa.Enum('SYSTEMATIC', 'NON_SYSTEMATIC', name='eventassessmenttype'), nullable=True),
-    sa.PrimaryKeyConstraint('event_list_id')
+    sa.PrimaryKeyConstraint('event_list_id', name=op.f('pk_event_lists'))
     )
     op.create_index(op.f('ix_event_lists_default_assessment'), 'event_lists', ['default_assessment'], unique=False)
     op.create_table('events',
@@ -111,7 +111,7 @@ def upgrade():
     sa.Column('sub_title', sa.Unicode(), nullable=True),
     sa.Column('assessment', sa.Enum('SYSTEMATIC', 'NON_SYSTEMATIC', name='eventassessmenttype'), nullable=True),
     sa.Column('description', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('event_id')
+    sa.PrimaryKeyConstraint('event_id', name=op.f('pk_events'))
     )
     op.create_index(op.f('ix_events_assessment'), 'events', ['assessment'], unique=False)
     op.create_table('expanded_access_infos',
@@ -119,7 +119,7 @@ def upgrade():
     sa.Column('individual', sa.Boolean(), nullable=True),
     sa.Column('intermediate', sa.Boolean(), nullable=True),
     sa.Column('treatment', sa.Boolean(), nullable=True),
-    sa.PrimaryKeyConstraint('expanded_access_info_id')
+    sa.PrimaryKeyConstraint('expanded_access_info_id', name=op.f('pk_expanded_access_infos'))
     )
     op.create_table('facilities',
     sa.Column('facility_id', sa.BigInteger(), nullable=False),
@@ -129,7 +129,7 @@ def upgrade():
     sa.Column('zip_code', sa.Unicode(), nullable=True),
     sa.Column('country', sa.Unicode(), nullable=False),
     sa.Column('md5', sa.Binary(), nullable=False),
-    sa.PrimaryKeyConstraint('facility_id')
+    sa.PrimaryKeyConstraint('facility_id', name=op.f('pk_facilities'))
     )
     op.create_index(op.f('ix_facilities_md5'), 'facilities', ['md5'], unique=True)
     op.create_table('groups',
@@ -137,20 +137,20 @@ def upgrade():
     sa.Column('identifier', sa.Unicode(), nullable=False),
     sa.Column('title', sa.Unicode(), nullable=True),
     sa.Column('description', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('group_id')
+    sa.PrimaryKeyConstraint('group_id', name=op.f('pk_groups'))
     )
     op.create_table('interventions',
     sa.Column('intervention_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.Enum('BEHAVIORAL', 'BIOLOGICAL', 'COMBINATION', 'DEVICE', 'DIAGNOSTIC', 'DIETARY', 'DRUG', 'GENETIC', 'PROCEDURE', 'RADIATION', 'OTHER', name='interventiontype'), nullable=False),
     sa.Column('name', sa.Unicode(), nullable=False),
     sa.Column('description', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('intervention_id')
+    sa.PrimaryKeyConstraint('intervention_id', name=op.f('pk_interventions'))
     )
     op.create_table('keywords',
     sa.Column('keyword_id', sa.BigInteger(), nullable=False),
     sa.Column('keyword', sa.Unicode(), nullable=False),
     sa.Column('md5', sa.Binary(), nullable=False),
-    sa.PrimaryKeyConstraint('keyword_id')
+    sa.PrimaryKeyConstraint('keyword_id', name=op.f('pk_keywords'))
     )
     op.create_index(op.f('ix_keywords_keyword'), 'keywords', ['keyword'], unique=True)
     op.create_index(op.f('ix_keywords_md5'), 'keywords', ['md5'], unique=True)
@@ -158,16 +158,16 @@ def upgrade():
     sa.Column('measure_analyzed_id', sa.BigInteger(), nullable=False),
     sa.Column('units', sa.Unicode(), nullable=True),
     sa.Column('scope', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('measure_analyzed_id')
+    sa.PrimaryKeyConstraint('measure_analyzed_id', name=op.f('pk_measure_analyzeds'))
     )
     op.create_table('measure_categories',
     sa.Column('measure_category_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('measure_category_id')
+    sa.PrimaryKeyConstraint('measure_category_id', name=op.f('pk_measure_categories'))
     )
     op.create_table('measure_classes',
     sa.Column('measure_class_id', sa.BigInteger(), nullable=False),
-    sa.PrimaryKeyConstraint('measure_class_id')
+    sa.PrimaryKeyConstraint('measure_class_id', name=op.f('pk_measure_classes'))
     )
     op.create_table('measures',
     sa.Column('measure_id', sa.BigInteger(), nullable=False),
@@ -178,19 +178,19 @@ def upgrade():
     sa.Column('parameter', sa.Enum('GEOMETRIC', 'GLS_MEAN', 'LS_MEAN', 'LOG_MEAN', 'MEAN', 'MEDIAN', 'NUMBER', 'PARTICIPANTS', 'UNITS', name='measureparametertype'), nullable=False),
     sa.Column('dispersion', sa.Unicode(), nullable=True),
     sa.Column('units_analyzed', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('measure_id')
+    sa.PrimaryKeyConstraint('measure_id', name=op.f('pk_measures'))
     )
     op.create_table('mesh_terms',
     sa.Column('mesh_term_id', sa.BigInteger(), nullable=False),
     sa.Column('term', sa.Unicode(), nullable=False),
     sa.Column('md5', sa.Binary(), nullable=False),
-    sa.PrimaryKeyConstraint('mesh_term_id')
+    sa.PrimaryKeyConstraint('mesh_term_id', name=op.f('pk_mesh_terms'))
     )
     op.create_index(op.f('ix_mesh_terms_md5'), 'mesh_terms', ['md5'], unique=True)
     op.create_table('milestones',
     sa.Column('milestone_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('milestone_id')
+    sa.PrimaryKeyConstraint('milestone_id', name=op.f('pk_milestones'))
     )
     op.create_table('oversight_infos',
     sa.Column('oversight_info_id', sa.BigInteger(), nullable=False),
@@ -200,24 +200,24 @@ def upgrade():
     sa.Column('is_unapproved_device', sa.Boolean(), nullable=True),
     sa.Column('is_ppsd', sa.Boolean(), nullable=True),
     sa.Column('is_us_export', sa.Boolean(), nullable=True),
-    sa.PrimaryKeyConstraint('oversight_info_id')
+    sa.PrimaryKeyConstraint('oversight_info_id', name=op.f('pk_oversight_infos'))
     )
     op.create_table('participant_flows',
     sa.Column('participant_flow_id', sa.BigInteger(), nullable=False),
     sa.Column('recruitment_details', sa.Unicode(), nullable=True),
     sa.Column('pre_assignment_details', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('participant_flow_id')
+    sa.PrimaryKeyConstraint('participant_flow_id', name=op.f('pk_participant_flows'))
     )
     op.create_table('patient_datas',
     sa.Column('patient_data_id', sa.BigInteger(), nullable=False),
     sa.Column('sharing_ipd', sa.Unicode(), nullable=True),
     sa.Column('ipd_description', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('patient_data_id')
+    sa.PrimaryKeyConstraint('patient_data_id', name=op.f('pk_patient_datas'))
     )
     op.create_table('periods',
     sa.Column('period_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(), nullable=False),
-    sa.PrimaryKeyConstraint('period_id')
+    sa.PrimaryKeyConstraint('period_id', name=op.f('pk_periods'))
     )
     op.create_table('persons',
     sa.Column('person_id', sa.BigInteger(), nullable=False),
@@ -226,7 +226,7 @@ def upgrade():
     sa.Column('name_last', sa.Unicode(), nullable=True),
     sa.Column('degrees', sa.Unicode(), nullable=True),
     sa.Column('md5', sa.Binary(), nullable=False),
-    sa.PrimaryKeyConstraint('person_id')
+    sa.PrimaryKeyConstraint('person_id', name=op.f('pk_persons'))
     )
     op.create_index(op.f('ix_persons_md5'), 'persons', ['md5'], unique=True)
     op.create_table('protocol_outcomes',
@@ -234,13 +234,14 @@ def upgrade():
     sa.Column('measure', sa.Unicode(), nullable=False),
     sa.Column('time_frame', sa.Unicode(), nullable=True),
     sa.Column('description', sa.Unicode(), nullable=False),
-    sa.PrimaryKeyConstraint('protocol_outcome_id')
+    sa.PrimaryKeyConstraint('protocol_outcome_id', name=op.f('pk_protocol_outcomes'))
     )
     op.create_table('references',
     sa.Column('reference_id', sa.BigInteger(), nullable=False),
     sa.Column('citation', sa.Unicode(), nullable=True),
     sa.Column('pmid', sa.Integer(), nullable=True),
-    sa.PrimaryKeyConstraint('reference_id')
+    sa.PrimaryKeyConstraint('reference_id', name=op.f('pk_references')),
+    sa.UniqueConstraint('pmid', name=op.f('uq_references_pmid'))
     )
     op.create_table('responsible_parties',
     sa.Column('responsible_party_id', sa.BigInteger(), nullable=False),
@@ -250,17 +251,17 @@ def upgrade():
     sa.Column('investigator_affiliation', sa.Unicode(), nullable=True),
     sa.Column('investigator_full_name', sa.Unicode(), nullable=True),
     sa.Column('investigator_title', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('responsible_party_id')
+    sa.PrimaryKeyConstraint('responsible_party_id', name=op.f('pk_responsible_parties'))
     )
     op.create_table('sponsors',
     sa.Column('sponsor_id', sa.BigInteger(), nullable=False),
     sa.Column('agency', sa.Unicode(), nullable=False),
     sa.Column('class', sa.Enum('NIH', 'US', 'INDUSTRY', 'OTHER', name='agencyclasstype'), nullable=True),
-    sa.Column('type', sa.Enum('LEAD', 'COLLABORATOR', name='sponsortype'), nullable=False),
-    sa.PrimaryKeyConstraint('sponsor_id')
+    sa.Column('md5', sa.Binary(), nullable=False),
+    sa.PrimaryKeyConstraint('sponsor_id', name=op.f('pk_sponsors'))
     )
     op.create_index(op.f('ix_sponsors_class'), 'sponsors', ['class'], unique=False)
-    op.create_index(op.f('ix_sponsors_type'), 'sponsors', ['type'], unique=False)
+    op.create_index(op.f('ix_sponsors_md5'), 'sponsors', ['md5'], unique=True)
     op.create_table('study_dates',
     sa.Column('study_dates_id', sa.BigInteger(), nullable=False),
     sa.Column('study_first_submitted', sa.Date(), nullable=True),
@@ -275,7 +276,7 @@ def upgrade():
     sa.Column('last_update_submitted', sa.Date(), nullable=True),
     sa.Column('last_update_submitted_qc', sa.Date(), nullable=True),
     sa.Column('last_update_posted', sa.Date(), nullable=True),
-    sa.PrimaryKeyConstraint('study_dates_id')
+    sa.PrimaryKeyConstraint('study_dates_id', name=op.f('pk_study_dates'))
     )
     op.create_table('study_design_infos',
     sa.Column('study_design_info_id', sa.BigInteger(), nullable=False),
@@ -287,7 +288,7 @@ def upgrade():
     sa.Column('time_perspective', sa.Unicode(), nullable=True),
     sa.Column('masking', sa.Unicode(), nullable=True),
     sa.Column('masking_description', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('study_design_info_id')
+    sa.PrimaryKeyConstraint('study_design_info_id', name=op.f('pk_study_design_infos'))
     )
     op.create_table('study_docs',
     sa.Column('study_doc_id', sa.BigInteger(), nullable=False),
@@ -295,39 +296,43 @@ def upgrade():
     sa.Column('doc_type', sa.Unicode(), nullable=True),
     sa.Column('doc_url', sa.Unicode(), nullable=True),
     sa.Column('doc_comment', sa.Unicode(), nullable=True),
-    sa.PrimaryKeyConstraint('study_doc_id')
+    sa.PrimaryKeyConstraint('study_doc_id', name=op.f('pk_study_docs'))
     )
     op.create_table('analysis_groups',
     sa.Column('analysis_group_id', sa.BigInteger(), nullable=False),
     sa.Column('analysis_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['analysis_id'], ['analyses.analysis_id'], ),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.PrimaryKeyConstraint('analysis_group_id')
+    sa.ForeignKeyConstraint(['analysis_id'], ['analyses.analysis_id'], name=op.f('fk_analysis_groups_analysis_id_analyses')),
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_analysis_groups_group_id_groups')),
+    sa.PrimaryKeyConstraint('analysis_group_id', name=op.f('pk_analysis_groups')),
+    sa.UniqueConstraint('analysis_id', 'group_id', name=op.f('uq_analysis_groups_analysis_id'))
     )
     op.create_table('baseline_groups',
     sa.Column('baseline_group_id', sa.BigInteger(), nullable=False),
     sa.Column('baseline_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['baseline_id'], ['baselines.baseline_id'], ),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.PrimaryKeyConstraint('baseline_group_id')
+    sa.ForeignKeyConstraint(['baseline_id'], ['baselines.baseline_id'], name=op.f('fk_baseline_groups_baseline_id_baselines')),
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_baseline_groups_group_id_groups')),
+    sa.PrimaryKeyConstraint('baseline_group_id', name=op.f('pk_baseline_groups')),
+    sa.UniqueConstraint('baseline_id', 'group_id', name=op.f('uq_baseline_groups_baseline_id'))
     )
     op.create_table('baseline_measure_analyzeds',
     sa.Column('baseline_measure_analyzed_id', sa.BigInteger(), nullable=False),
     sa.Column('baseline_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_analyzed_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['baseline_id'], ['baselines.baseline_id'], ),
-    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], ),
-    sa.PrimaryKeyConstraint('baseline_measure_analyzed_id')
+    sa.ForeignKeyConstraint(['baseline_id'], ['baselines.baseline_id'], name=op.f('fk_baseline_measure_analyzeds_baseline_id_baselines')),
+    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], name=op.f('fk_baseline_measure_analyzeds_measure_analyzed_id_measure_analyzeds')),
+    sa.PrimaryKeyConstraint('baseline_measure_analyzed_id', name=op.f('pk_baseline_measure_analyzeds')),
+    sa.UniqueConstraint('baseline_id', 'measure_analyzed_id', name=op.f('uq_baseline_measure_analyzeds_baseline_id'))
     )
     op.create_table('baseline_measures',
     sa.Column('baseline_measure_id', sa.BigInteger(), nullable=False),
     sa.Column('baseline_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['baseline_id'], ['baselines.baseline_id'], ),
-    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], ),
-    sa.PrimaryKeyConstraint('baseline_measure_id')
+    sa.ForeignKeyConstraint(['baseline_id'], ['baselines.baseline_id'], name=op.f('fk_baseline_measures_baseline_id_baselines')),
+    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], name=op.f('fk_baseline_measures_measure_id_measures')),
+    sa.PrimaryKeyConstraint('baseline_measure_id', name=op.f('pk_baseline_measures')),
+    sa.UniqueConstraint('baseline_id', 'measure_id', name=op.f('uq_baseline_measures_baseline_id'))
     )
     op.create_table('contacts',
     sa.Column('contact_id', sa.BigInteger(), nullable=False),
@@ -335,16 +340,19 @@ def upgrade():
     sa.Column('phone', sa.Unicode(), nullable=True),
     sa.Column('phone_ext', sa.Unicode(), nullable=True),
     sa.Column('email', sa.Unicode(), nullable=True),
-    sa.ForeignKeyConstraint(['person_id'], ['persons.person_id'], ),
-    sa.PrimaryKeyConstraint('contact_id')
+    sa.Column('md5', sa.Binary(), nullable=False),
+    sa.ForeignKeyConstraint(['person_id'], ['persons.person_id'], name=op.f('fk_contacts_person_id_persons')),
+    sa.PrimaryKeyConstraint('contact_id', name=op.f('pk_contacts'))
     )
+    op.create_index(op.f('ix_contacts_md5'), 'contacts', ['md5'], unique=True)
     op.create_table('event_category_events',
     sa.Column('event_category_event_id', sa.BigInteger(), nullable=False),
     sa.Column('event_category_id', sa.BigInteger(), nullable=False),
     sa.Column('event_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['event_category_id'], ['event_categories.event_category_id'], ),
-    sa.ForeignKeyConstraint(['event_id'], ['events.event_id'], ),
-    sa.PrimaryKeyConstraint('event_category_event_id')
+    sa.ForeignKeyConstraint(['event_category_id'], ['event_categories.event_category_id'], name=op.f('fk_event_category_events_event_category_id_event_categories')),
+    sa.ForeignKeyConstraint(['event_id'], ['events.event_id'], name=op.f('fk_event_category_events_event_id_events')),
+    sa.PrimaryKeyConstraint('event_category_event_id', name=op.f('pk_event_category_events')),
+    sa.UniqueConstraint('event_category_id', 'event_id', name=op.f('uq_event_category_events_event_category_id'))
     )
     op.create_table('event_counts',
     sa.Column('event_count_id', sa.BigInteger(), nullable=False),
@@ -352,80 +360,85 @@ def upgrade():
     sa.Column('subjects_affected', sa.Integer(), nullable=True),
     sa.Column('subjects_at_risk', sa.Integer(), nullable=True),
     sa.Column('events', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.PrimaryKeyConstraint('event_count_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_event_counts_group_id_groups')),
+    sa.PrimaryKeyConstraint('event_count_id', name=op.f('pk_event_counts'))
     )
     op.create_table('event_list_categories',
     sa.Column('event_list_category_id', sa.BigInteger(), nullable=False),
     sa.Column('event_list_id', sa.BigInteger(), nullable=False),
     sa.Column('event_category_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['event_category_id'], ['event_categories.event_category_id'], ),
-    sa.ForeignKeyConstraint(['event_list_id'], ['event_lists.event_list_id'], ),
-    sa.PrimaryKeyConstraint('event_list_category_id')
+    sa.ForeignKeyConstraint(['event_category_id'], ['event_categories.event_category_id'], name=op.f('fk_event_list_categories_event_category_id_event_categories')),
+    sa.ForeignKeyConstraint(['event_list_id'], ['event_lists.event_list_id'], name=op.f('fk_event_list_categories_event_list_id_event_lists')),
+    sa.PrimaryKeyConstraint('event_list_category_id', name=op.f('pk_event_list_categories')),
+    sa.UniqueConstraint('event_list_id', 'event_category_id', name=op.f('uq_event_list_categories_event_list_id'))
     )
     op.create_table('intervention_aliases',
     sa.Column('intervention_alias_id', sa.BigInteger(), nullable=False),
     sa.Column('intervention_id', sa.BigInteger(), nullable=False),
     sa.Column('alias_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['alias_id'], ['aliases.alias_id'], ),
-    sa.ForeignKeyConstraint(['intervention_id'], ['interventions.intervention_id'], ),
-    sa.PrimaryKeyConstraint('intervention_alias_id')
+    sa.ForeignKeyConstraint(['alias_id'], ['aliases.alias_id'], name=op.f('fk_intervention_aliases_alias_id_aliases')),
+    sa.ForeignKeyConstraint(['intervention_id'], ['interventions.intervention_id'], name=op.f('fk_intervention_aliases_intervention_id_interventions')),
+    sa.PrimaryKeyConstraint('intervention_alias_id', name=op.f('pk_intervention_aliases')),
+    sa.UniqueConstraint('intervention_id', 'alias_id', name=op.f('uq_intervention_aliases_intervention_id'))
     )
     op.create_table('intervention_arm_groups',
     sa.Column('intervention_arm_group_id', sa.BigInteger(), nullable=False),
     sa.Column('intervention_id', sa.BigInteger(), nullable=False),
     sa.Column('arm_group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['arm_group_id'], ['arm_groups.arm_group_id'], ),
-    sa.ForeignKeyConstraint(['intervention_id'], ['interventions.intervention_id'], ),
-    sa.PrimaryKeyConstraint('intervention_arm_group_id')
+    sa.ForeignKeyConstraint(['arm_group_id'], ['arm_groups.arm_group_id'], name=op.f('fk_intervention_arm_groups_arm_group_id_arm_groups')),
+    sa.ForeignKeyConstraint(['intervention_id'], ['interventions.intervention_id'], name=op.f('fk_intervention_arm_groups_intervention_id_interventions')),
+    sa.PrimaryKeyConstraint('intervention_arm_group_id', name=op.f('pk_intervention_arm_groups')),
+    sa.UniqueConstraint('intervention_id', 'arm_group_id', name=op.f('uq_intervention_arm_groups_intervention_id'))
     )
     op.create_table('investigators',
     sa.Column('investigator_id', sa.BigInteger(), nullable=False),
     sa.Column('person_id', sa.BigInteger(), nullable=False),
     sa.Column('role', sa.Enum('PRINCIPAL', 'SUB', 'CHAIR', 'DIRECTOR', name='roletype'), nullable=False),
     sa.Column('affiliation', sa.Unicode(), nullable=True),
-    sa.ForeignKeyConstraint(['person_id'], ['persons.person_id'], ),
-    sa.PrimaryKeyConstraint('investigator_id')
+    sa.Column('md5', sa.Binary(), nullable=False),
+    sa.ForeignKeyConstraint(['person_id'], ['persons.person_id'], name=op.f('fk_investigators_person_id_persons')),
+    sa.PrimaryKeyConstraint('investigator_id', name=op.f('pk_investigators'))
     )
+    op.create_index(op.f('ix_investigators_md5'), 'investigators', ['md5'], unique=True)
     op.create_index(op.f('ix_investigators_role'), 'investigators', ['role'], unique=False)
     op.create_table('measure_class_analyzeds',
     sa.Column('measure_class_analyzed_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_class_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_analyzed_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], ),
-    sa.ForeignKeyConstraint(['measure_class_id'], ['measure_classes.measure_class_id'], ),
-    sa.PrimaryKeyConstraint('measure_class_analyzed_id')
+    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], name=op.f('fk_measure_class_analyzeds_measure_analyzed_id_measure_analyzeds')),
+    sa.ForeignKeyConstraint(['measure_class_id'], ['measure_classes.measure_class_id'], name=op.f('fk_measure_class_analyzeds_measure_class_id_measure_classes')),
+    sa.PrimaryKeyConstraint('measure_class_analyzed_id', name=op.f('pk_measure_class_analyzeds'))
     )
     op.create_table('measure_class_categories',
     sa.Column('measure_class_category_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_class_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_category_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_category_id'], ['measure_categories.measure_category_id'], ),
-    sa.ForeignKeyConstraint(['measure_class_id'], ['measure_classes.measure_class_id'], ),
-    sa.PrimaryKeyConstraint('measure_class_category_id')
+    sa.ForeignKeyConstraint(['measure_category_id'], ['measure_categories.measure_category_id'], name=op.f('fk_measure_class_categories_measure_category_id_measure_categories')),
+    sa.ForeignKeyConstraint(['measure_class_id'], ['measure_classes.measure_class_id'], name=op.f('fk_measure_class_categories_measure_class_id_measure_classes')),
+    sa.PrimaryKeyConstraint('measure_class_category_id', name=op.f('pk_measure_class_categories'))
     )
     op.create_table('measure_counts',
     sa.Column('measure_count_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
     sa.Column('value', sa.Unicode(), nullable=True),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.PrimaryKeyConstraint('measure_count_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_measure_counts_group_id_groups')),
+    sa.PrimaryKeyConstraint('measure_count_id', name=op.f('pk_measure_counts'))
     )
     op.create_table('measure_measure_analyzeds',
     sa.Column('measure_measure_analyzed_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_analyzed_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], ),
-    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], ),
-    sa.PrimaryKeyConstraint('measure_measure_analyzed_id')
+    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], name=op.f('fk_measure_measure_analyzeds_measure_analyzed_id_measure_analyzeds')),
+    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], name=op.f('fk_measure_measure_analyzeds_measure_id_measures')),
+    sa.PrimaryKeyConstraint('measure_measure_analyzed_id', name=op.f('pk_measure_measure_analyzeds'))
     )
     op.create_table('measure_measure_classes',
     sa.Column('measure_measure_class_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_class_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_class_id'], ['measure_classes.measure_class_id'], ),
-    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], ),
-    sa.PrimaryKeyConstraint('measure_measure_class_id')
+    sa.ForeignKeyConstraint(['measure_class_id'], ['measure_classes.measure_class_id'], name=op.f('fk_measure_measure_classes_measure_class_id_measure_classes')),
+    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], name=op.f('fk_measure_measure_classes_measure_id_measures')),
+    sa.PrimaryKeyConstraint('measure_measure_class_id', name=op.f('pk_measure_measure_classes'))
     )
     op.create_table('measurements',
     sa.Column('measurement_id', sa.BigInteger(), nullable=False),
@@ -434,47 +447,51 @@ def upgrade():
     sa.Column('spread', sa.Unicode(), nullable=True),
     sa.Column('lower_limit', sa.Unicode(), nullable=True),
     sa.Column('upper_limit', sa.Unicode(), nullable=True),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.PrimaryKeyConstraint('measurement_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_measurements_group_id_groups')),
+    sa.PrimaryKeyConstraint('measurement_id', name=op.f('pk_measurements'))
     )
     op.create_table('participant_flow_groups',
     sa.Column('participant_flow_group_id', sa.BigInteger(), nullable=False),
     sa.Column('participant_flow_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.ForeignKeyConstraint(['participant_flow_id'], ['participant_flows.participant_flow_id'], ),
-    sa.PrimaryKeyConstraint('participant_flow_group_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_participant_flow_groups_group_id_groups')),
+    sa.ForeignKeyConstraint(['participant_flow_id'], ['participant_flows.participant_flow_id'], name=op.f('fk_participant_flow_groups_participant_flow_id_participant_flows')),
+    sa.PrimaryKeyConstraint('participant_flow_group_id', name=op.f('pk_participant_flow_groups')),
+    sa.UniqueConstraint('participant_flow_id', 'group_id', name=op.f('uq_participant_flow_groups_participant_flow_id'))
     )
     op.create_table('participant_flow_periods',
     sa.Column('participant_flow_period_id', sa.BigInteger(), nullable=False),
     sa.Column('participant_flow_id', sa.BigInteger(), nullable=False),
     sa.Column('period_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['participant_flow_id'], ['participant_flows.participant_flow_id'], ),
-    sa.ForeignKeyConstraint(['period_id'], ['periods.period_id'], ),
-    sa.PrimaryKeyConstraint('participant_flow_period_id')
+    sa.ForeignKeyConstraint(['participant_flow_id'], ['participant_flows.participant_flow_id'], name=op.f('fk_participant_flow_periods_participant_flow_id_participant_flows')),
+    sa.ForeignKeyConstraint(['period_id'], ['periods.period_id'], name=op.f('fk_participant_flow_periods_period_id_periods')),
+    sa.PrimaryKeyConstraint('participant_flow_period_id', name=op.f('pk_participant_flow_periods')),
+    sa.UniqueConstraint('participant_flow_id', 'period_id', name=op.f('uq_participant_flow_periods_participant_flow_id'))
     )
     op.create_table('participants',
     sa.Column('participant_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
     sa.Column('count', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.PrimaryKeyConstraint('participant_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_participants_group_id_groups')),
+    sa.PrimaryKeyConstraint('participant_id', name=op.f('pk_participants'))
     )
     op.create_table('period_drop_withdraw_reasons',
     sa.Column('period_drop_withdraw_reason_id', sa.BigInteger(), nullable=False),
     sa.Column('period_id', sa.BigInteger(), nullable=False),
     sa.Column('drop_withdraw_reason_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['drop_withdraw_reason_id'], ['drop_withdraw_reasons.drop_withdraw_reason_id'], ),
-    sa.ForeignKeyConstraint(['period_id'], ['periods.period_id'], ),
-    sa.PrimaryKeyConstraint('period_drop_withdraw_reason_id')
+    sa.ForeignKeyConstraint(['drop_withdraw_reason_id'], ['drop_withdraw_reasons.drop_withdraw_reason_id'], name=op.f('fk_period_drop_withdraw_reasons_drop_withdraw_reason_id_drop_withdraw_reasons')),
+    sa.ForeignKeyConstraint(['period_id'], ['periods.period_id'], name=op.f('fk_period_drop_withdraw_reasons_period_id_periods')),
+    sa.PrimaryKeyConstraint('period_drop_withdraw_reason_id', name=op.f('pk_period_drop_withdraw_reasons')),
+    sa.UniqueConstraint('period_id', 'drop_withdraw_reason_id', name=op.f('uq_period_drop_withdraw_reasons_period_id'))
     )
     op.create_table('period_milestones',
     sa.Column('period_milestone_id', sa.BigInteger(), nullable=False),
     sa.Column('period_id', sa.BigInteger(), nullable=False),
     sa.Column('milestone_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['milestone_id'], ['milestones.milestone_id'], ),
-    sa.ForeignKeyConstraint(['period_id'], ['periods.period_id'], ),
-    sa.PrimaryKeyConstraint('period_milestone_id')
+    sa.ForeignKeyConstraint(['milestone_id'], ['milestones.milestone_id'], name=op.f('fk_period_milestones_milestone_id_milestones')),
+    sa.ForeignKeyConstraint(['period_id'], ['periods.period_id'], name=op.f('fk_period_milestones_period_id_periods')),
+    sa.PrimaryKeyConstraint('period_milestone_id', name=op.f('pk_period_milestones')),
+    sa.UniqueConstraint('period_id', 'milestone_id', name=op.f('uq_period_milestones_period_id'))
     )
     op.create_table('reported_events',
     sa.Column('reported_event_id', sa.BigInteger(), nullable=False),
@@ -482,9 +499,9 @@ def upgrade():
     sa.Column('desc', sa.Unicode(), nullable=True),
     sa.Column('serious_event_list_id', sa.BigInteger(), nullable=False),
     sa.Column('other_event_list_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['other_event_list_id'], ['event_lists.event_list_id'], ),
-    sa.ForeignKeyConstraint(['serious_event_list_id'], ['event_lists.event_list_id'], ),
-    sa.PrimaryKeyConstraint('reported_event_id')
+    sa.ForeignKeyConstraint(['other_event_list_id'], ['event_lists.event_list_id'], name=op.f('fk_reported_events_other_event_list_id_event_lists')),
+    sa.ForeignKeyConstraint(['serious_event_list_id'], ['event_lists.event_list_id'], name=op.f('fk_reported_events_serious_event_list_id_event_lists')),
+    sa.PrimaryKeyConstraint('reported_event_id', name=op.f('pk_reported_events'))
     )
     op.create_table('result_outcomes',
     sa.Column('result_outcome_id', sa.BigInteger(), nullable=False),
@@ -495,16 +512,17 @@ def upgrade():
     sa.Column('safety_issue', sa.Boolean(), nullable=True),
     sa.Column('population', sa.Unicode(), nullable=True),
     sa.Column('measure_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], ),
-    sa.PrimaryKeyConstraint('result_outcome_id')
+    sa.ForeignKeyConstraint(['measure_id'], ['measures.measure_id'], name=op.f('fk_result_outcomes_measure_id_measures')),
+    sa.PrimaryKeyConstraint('result_outcome_id', name=op.f('pk_result_outcomes'))
     )
     op.create_table('event_event_counts',
     sa.Column('event_event_count_id', sa.BigInteger(), nullable=False),
     sa.Column('event_id', sa.BigInteger(), nullable=False),
     sa.Column('event_count_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['event_count_id'], ['event_counts.event_count_id'], ),
-    sa.ForeignKeyConstraint(['event_id'], ['events.event_id'], ),
-    sa.PrimaryKeyConstraint('event_event_count_id')
+    sa.ForeignKeyConstraint(['event_count_id'], ['event_counts.event_count_id'], name=op.f('fk_event_event_counts_event_count_id_event_counts')),
+    sa.ForeignKeyConstraint(['event_id'], ['events.event_id'], name=op.f('fk_event_event_counts_event_id_events')),
+    sa.PrimaryKeyConstraint('event_event_count_id', name=op.f('pk_event_event_counts')),
+    sa.UniqueConstraint('event_id', 'event_count_id', name=op.f('uq_event_event_counts_event_id'))
     )
     op.create_table('locations',
     sa.Column('location_id', sa.BigInteger(), nullable=False),
@@ -512,51 +530,54 @@ def upgrade():
     sa.Column('status', sa.Enum('ACTIVE_NOT', 'COMPLETED', 'INVITATION', 'NOT_YET', 'RECRUITING', 'SUSPENDED', 'TERMINATED', 'WITHDRAWN', name='recruitmentstatustype'), nullable=True),
     sa.Column('contact_primary_id', sa.BigInteger(), nullable=True),
     sa.Column('contact_backup_id', sa.BigInteger(), nullable=True),
-    sa.ForeignKeyConstraint(['contact_backup_id'], ['contacts.contact_id'], ),
-    sa.ForeignKeyConstraint(['contact_primary_id'], ['contacts.contact_id'], ),
-    sa.ForeignKeyConstraint(['facility_id'], ['facilities.facility_id'], ),
-    sa.PrimaryKeyConstraint('location_id')
+    sa.ForeignKeyConstraint(['contact_backup_id'], ['contacts.contact_id'], name=op.f('fk_locations_contact_backup_id_contacts')),
+    sa.ForeignKeyConstraint(['contact_primary_id'], ['contacts.contact_id'], name=op.f('fk_locations_contact_primary_id_contacts')),
+    sa.ForeignKeyConstraint(['facility_id'], ['facilities.facility_id'], name=op.f('fk_locations_facility_id_facilities')),
+    sa.PrimaryKeyConstraint('location_id', name=op.f('pk_locations')),
+    sa.UniqueConstraint('facility_id', 'contact_primary_id', 'contact_backup_id', name=op.f('uq_locations_facility_id'))
     )
     op.create_index(op.f('ix_locations_status'), 'locations', ['status'], unique=False)
     op.create_table('measure_analyzed_counts',
     sa.Column('measure_analyzed_count_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_analyzed_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_count_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], ),
-    sa.ForeignKeyConstraint(['measure_count_id'], ['measure_counts.measure_count_id'], ),
-    sa.PrimaryKeyConstraint('measure_analyzed_count_id')
+    sa.ForeignKeyConstraint(['measure_analyzed_id'], ['measure_analyzeds.measure_analyzed_id'], name=op.f('fk_measure_analyzed_counts_measure_analyzed_id_measure_analyzeds')),
+    sa.ForeignKeyConstraint(['measure_count_id'], ['measure_counts.measure_count_id'], name=op.f('fk_measure_analyzed_counts_measure_count_id_measure_counts')),
+    sa.PrimaryKeyConstraint('measure_analyzed_count_id', name=op.f('pk_measure_analyzed_counts'))
     )
     op.create_table('measure_category_measurements',
     sa.Column('measure_category_measurement_id', sa.BigInteger(), nullable=False),
     sa.Column('measure_category_id', sa.BigInteger(), nullable=False),
     sa.Column('measurement_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['measure_category_id'], ['measure_categories.measure_category_id'], ),
-    sa.ForeignKeyConstraint(['measurement_id'], ['measurements.measurement_id'], ),
-    sa.PrimaryKeyConstraint('measure_category_measurement_id')
+    sa.ForeignKeyConstraint(['measure_category_id'], ['measure_categories.measure_category_id'], name=op.f('fk_measure_category_measurements_measure_category_id_measure_categories')),
+    sa.ForeignKeyConstraint(['measurement_id'], ['measurements.measurement_id'], name=op.f('fk_measure_category_measurements_measurement_id_measurements')),
+    sa.PrimaryKeyConstraint('measure_category_measurement_id', name=op.f('pk_measure_category_measurements'))
     )
     op.create_table('milestone_participants',
     sa.Column('milestone_participant_id', sa.BigInteger(), nullable=False),
     sa.Column('milestone_id', sa.BigInteger(), nullable=False),
     sa.Column('participant_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['milestone_id'], ['milestones.milestone_id'], ),
-    sa.ForeignKeyConstraint(['participant_id'], ['participants.participant_id'], ),
-    sa.PrimaryKeyConstraint('milestone_participant_id')
+    sa.ForeignKeyConstraint(['milestone_id'], ['milestones.milestone_id'], name=op.f('fk_milestone_participants_milestone_id_milestones')),
+    sa.ForeignKeyConstraint(['participant_id'], ['participants.participant_id'], name=op.f('fk_milestone_participants_participant_id_participants')),
+    sa.PrimaryKeyConstraint('milestone_participant_id', name=op.f('pk_milestone_participants')),
+    sa.UniqueConstraint('milestone_id', 'participant_id', name=op.f('uq_milestone_participants_milestone_id'))
     )
     op.create_table('reported_event_groups',
     sa.Column('reported_event_group_id', sa.BigInteger(), nullable=False),
     sa.Column('reported_event_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.ForeignKeyConstraint(['reported_event_id'], ['reported_events.reported_event_id'], ),
-    sa.PrimaryKeyConstraint('reported_event_group_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_reported_event_groups_group_id_groups')),
+    sa.ForeignKeyConstraint(['reported_event_id'], ['reported_events.reported_event_id'], name=op.f('fk_reported_event_groups_reported_event_id_reported_events')),
+    sa.PrimaryKeyConstraint('reported_event_group_id', name=op.f('pk_reported_event_groups')),
+    sa.UniqueConstraint('reported_event_id', 'group_id', name=op.f('uq_reported_event_groups_reported_event_id'))
     )
     op.create_table('result_outcome_groups',
     sa.Column('result_outcome_group_id', sa.BigInteger(), nullable=False),
     sa.Column('result_outcome_id', sa.BigInteger(), nullable=False),
     sa.Column('group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
-    sa.ForeignKeyConstraint(['result_outcome_id'], ['result_outcomes.result_outcome_id'], ),
-    sa.PrimaryKeyConstraint('result_outcome_group_id')
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], name=op.f('fk_result_outcome_groups_group_id_groups')),
+    sa.ForeignKeyConstraint(['result_outcome_id'], ['result_outcomes.result_outcome_id'], name=op.f('fk_result_outcome_groups_result_outcome_id_result_outcomes')),
+    sa.PrimaryKeyConstraint('result_outcome_group_id', name=op.f('pk_result_outcome_groups'))
     )
     op.create_table('studies',
     sa.Column('study_id', sa.BigInteger(), nullable=False),
@@ -571,7 +592,7 @@ def upgrade():
     sa.Column('brief_summary', sa.UnicodeText(), nullable=True),
     sa.Column('detailed_description', sa.UnicodeText(), nullable=True),
     sa.Column('overall_status', sa.Enum('ACTIVE_NOT', 'COMPLETED', 'INVITATION', 'NOT_YET', 'RECRUITING', 'SUSPENDED', 'TERMINATED', 'WITHDRAWN', 'AVAILABLE', 'UNAVAILABLE', 'TEMP_UNAVAILABLE', 'APPROVED', 'WITHHELD', 'UNKNOWN', name='overallstatustype'), nullable=False),
-    sa.Column('last_known_status', sa.Enum('ACTIVE_NOT', 'COMPLETED', 'INVITATION', 'NOT_YET', 'RECRUITING', 'SUSPENDED', 'TERMINATED', 'WITHDRAWN', 'AVAILABLE', 'UNAVAILABLE', 'TEMP_UNAVAILABLE', 'APPROVED', 'WITHHELD', 'UNKNOWN', name='overallstatustype'), nullable=False),
+    sa.Column('last_known_status', sa.Enum('ACTIVE_NOT', 'COMPLETED', 'INVITATION', 'NOT_YET', 'RECRUITING', 'SUSPENDED', 'TERMINATED', 'WITHDRAWN', 'AVAILABLE', 'UNAVAILABLE', 'TEMP_UNAVAILABLE', 'APPROVED', 'WITHHELD', 'UNKNOWN', name='overallstatustype'), nullable=True),
     sa.Column('why_stopped', sa.Unicode(), nullable=True),
     sa.Column('start_date', sa.Date(), nullable=True),
     sa.Column('completion_date', sa.Date(), nullable=True),
@@ -583,7 +604,7 @@ def upgrade():
     sa.Column('study_design_info_id', sa.BigInteger(), nullable=True),
     sa.Column('target_duration', sa.Unicode(), nullable=True),
     sa.Column('enrollment_id', sa.BigInteger(), nullable=False),
-    sa.Column('biospec_retention', sa.Enum('NONE', 'SAMPLES_W_DNA', 'SAMPLES_WO_DNA', name='biospecretentiontype'), nullable=False),
+    sa.Column('biospec_retention', sa.Enum('NONE', 'SAMPLES_W_DNA', 'SAMPLES_WO_DNA', name='biospecretentiontype'), nullable=True),
     sa.Column('biospec_description', sa.Unicode(), nullable=True),
     sa.Column('eligibility_id', sa.BigInteger(), nullable=False),
     sa.Column('contact_primary_id', sa.BigInteger(), nullable=False),
@@ -591,18 +612,18 @@ def upgrade():
     sa.Column('study_dates_id', sa.BigInteger(), nullable=False),
     sa.Column('responsible_party_id', sa.BigInteger(), nullable=False),
     sa.Column('patient_data_id', sa.BigInteger(), nullable=True),
-    sa.ForeignKeyConstraint(['contact_backup_id'], ['contacts.contact_id'], ),
-    sa.ForeignKeyConstraint(['contact_primary_id'], ['contacts.contact_id'], ),
-    sa.ForeignKeyConstraint(['eligibility_id'], ['eligibilities.eligibility_id'], ),
-    sa.ForeignKeyConstraint(['enrollment_id'], ['enrollments.enrollment_id'], ),
-    sa.ForeignKeyConstraint(['expanded_access_info_id'], ['expanded_access_infos.expanded_access_info_id'], ),
-    sa.ForeignKeyConstraint(['oversight_info_id'], ['oversight_infos.oversight_info_id'], ),
-    sa.ForeignKeyConstraint(['patient_data_id'], ['patient_datas.patient_data_id'], ),
-    sa.ForeignKeyConstraint(['responsible_party_id'], ['responsible_parties.responsible_party_id'], ),
-    sa.ForeignKeyConstraint(['study_dates_id'], ['study_dates.study_dates_id'], ),
-    sa.ForeignKeyConstraint(['study_design_info_id'], ['study_design_infos.study_design_info_id'], ),
-    sa.PrimaryKeyConstraint('study_id'),
-    sa.UniqueConstraint('nct_id')
+    sa.ForeignKeyConstraint(['contact_backup_id'], ['contacts.contact_id'], name=op.f('fk_studies_contact_backup_id_contacts')),
+    sa.ForeignKeyConstraint(['contact_primary_id'], ['contacts.contact_id'], name=op.f('fk_studies_contact_primary_id_contacts')),
+    sa.ForeignKeyConstraint(['eligibility_id'], ['eligibilities.eligibility_id'], name=op.f('fk_studies_eligibility_id_eligibilities')),
+    sa.ForeignKeyConstraint(['enrollment_id'], ['enrollments.enrollment_id'], name=op.f('fk_studies_enrollment_id_enrollments')),
+    sa.ForeignKeyConstraint(['expanded_access_info_id'], ['expanded_access_infos.expanded_access_info_id'], name=op.f('fk_studies_expanded_access_info_id_expanded_access_infos')),
+    sa.ForeignKeyConstraint(['oversight_info_id'], ['oversight_infos.oversight_info_id'], name=op.f('fk_studies_oversight_info_id_oversight_infos')),
+    sa.ForeignKeyConstraint(['patient_data_id'], ['patient_datas.patient_data_id'], name=op.f('fk_studies_patient_data_id_patient_datas')),
+    sa.ForeignKeyConstraint(['responsible_party_id'], ['responsible_parties.responsible_party_id'], name=op.f('fk_studies_responsible_party_id_responsible_parties')),
+    sa.ForeignKeyConstraint(['study_dates_id'], ['study_dates.study_dates_id'], name=op.f('fk_studies_study_dates_id_study_dates')),
+    sa.ForeignKeyConstraint(['study_design_info_id'], ['study_design_infos.study_design_info_id'], name=op.f('fk_studies_study_design_info_id_study_design_infos')),
+    sa.PrimaryKeyConstraint('study_id', name=op.f('pk_studies')),
+    sa.UniqueConstraint('nct_id', name=op.f('uq_studies_nct_id'))
     )
     op.create_index(op.f('ix_studies_biospec_retention'), 'studies', ['biospec_retention'], unique=False)
     op.create_index(op.f('ix_studies_last_known_status'), 'studies', ['last_known_status'], unique=False)
@@ -613,74 +634,83 @@ def upgrade():
     sa.Column('location_investigator_id', sa.BigInteger(), nullable=False),
     sa.Column('location_id', sa.BigInteger(), nullable=False),
     sa.Column('investigator_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['investigator_id'], ['investigators.investigator_id'], ),
-    sa.ForeignKeyConstraint(['location_id'], ['locations.location_id'], ),
-    sa.PrimaryKeyConstraint('location_investigator_id')
+    sa.ForeignKeyConstraint(['investigator_id'], ['investigators.investigator_id'], name=op.f('fk_location_investigators_investigator_id_investigators')),
+    sa.ForeignKeyConstraint(['location_id'], ['locations.location_id'], name=op.f('fk_location_investigators_location_id_locations')),
+    sa.PrimaryKeyConstraint('location_investigator_id', name=op.f('pk_location_investigators')),
+    sa.UniqueConstraint('location_id', 'investigator_id', name=op.f('uq_location_investigators_location_id'))
     )
     op.create_table('study_aliases',
     sa.Column('study_alias_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('alias_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['alias_id'], ['aliases.alias_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_alias_id')
+    sa.ForeignKeyConstraint(['alias_id'], ['aliases.alias_id'], name=op.f('fk_study_aliases_alias_id_aliases')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_aliases_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_alias_id', name=op.f('pk_study_aliases')),
+    sa.UniqueConstraint('study_id', 'alias_id', name=op.f('uq_study_aliases_study_id'))
     )
     op.create_table('study_arm_groups',
     sa.Column('study_arm_group_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('arm_group_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['arm_group_id'], ['arm_groups.arm_group_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_arm_group_id')
+    sa.ForeignKeyConstraint(['arm_group_id'], ['arm_groups.arm_group_id'], name=op.f('fk_study_arm_groups_arm_group_id_arm_groups')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_arm_groups_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_arm_group_id', name=op.f('pk_study_arm_groups')),
+    sa.UniqueConstraint('study_id', 'arm_group_id', name=op.f('uq_study_arm_groups_study_id'))
     )
     op.create_table('study_conditions',
     sa.Column('study_condition_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('condition_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['condition_id'], ['conditions.condition_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_condition_id')
+    sa.ForeignKeyConstraint(['condition_id'], ['conditions.condition_id'], name=op.f('fk_study_conditions_condition_id_conditions')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_conditions_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_condition_id', name=op.f('pk_study_conditions')),
+    sa.UniqueConstraint('study_id', 'condition_id', name=op.f('uq_study_conditions_study_id'))
     )
     op.create_table('study_interventions',
     sa.Column('study_intervention_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('intervention_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['intervention_id'], ['interventions.intervention_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_intervention_id')
+    sa.ForeignKeyConstraint(['intervention_id'], ['interventions.intervention_id'], name=op.f('fk_study_interventions_intervention_id_interventions')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_interventions_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_intervention_id', name=op.f('pk_study_interventions')),
+    sa.UniqueConstraint('study_id', 'intervention_id', name=op.f('uq_study_interventions_study_id'))
     )
     op.create_table('study_investigators',
     sa.Column('study_investigator_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('investigator_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['investigator_id'], ['investigators.investigator_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_investigator_id')
+    sa.ForeignKeyConstraint(['investigator_id'], ['investigators.investigator_id'], name=op.f('fk_study_investigators_investigator_id_investigators')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_investigators_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_investigator_id', name=op.f('pk_study_investigators')),
+    sa.UniqueConstraint('study_id', 'investigator_id', name=op.f('uq_study_investigators_study_id'))
     )
     op.create_table('study_keywords',
     sa.Column('study_keyword_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('keyword_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['keyword_id'], ['keywords.keyword_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_keyword_id')
+    sa.ForeignKeyConstraint(['keyword_id'], ['keywords.keyword_id'], name=op.f('fk_study_keywords_keyword_id_keywords')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_keywords_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_keyword_id', name=op.f('pk_study_keywords')),
+    sa.UniqueConstraint('study_id', 'keyword_id', name=op.f('uq_study_keywords_study_id'))
     )
     op.create_table('study_locations',
     sa.Column('study_location_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('location_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['location_id'], ['locations.location_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_location_id')
+    sa.ForeignKeyConstraint(['location_id'], ['locations.location_id'], name=op.f('fk_study_locations_location_id_locations')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_locations_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_location_id', name=op.f('pk_study_locations')),
+    sa.UniqueConstraint('study_id', 'location_id', name=op.f('uq_study_locations_study_id'))
     )
     op.create_table('study_mesh_terms',
     sa.Column('study_mesh_term_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('mesh_term_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.Enum('CONDITION', 'INTERVENTION', name='meshtermtype'), nullable=False),
-    sa.ForeignKeyConstraint(['mesh_term_id'], ['mesh_terms.mesh_term_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_mesh_term_id')
+    sa.ForeignKeyConstraint(['mesh_term_id'], ['mesh_terms.mesh_term_id'], name=op.f('fk_study_mesh_terms_mesh_term_id_mesh_terms')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_mesh_terms_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_mesh_term_id', name=op.f('pk_study_mesh_terms')),
+    sa.UniqueConstraint('study_id', 'mesh_term_id', name=op.f('uq_study_mesh_terms_study_id'))
     )
     op.create_index(op.f('ix_study_mesh_terms_type'), 'study_mesh_terms', ['type'], unique=False)
     op.create_table('study_outcomes',
@@ -688,9 +718,10 @@ def upgrade():
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('protocol_outcome_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.Enum('PRIMARY', 'SECONDARY', 'POST_HOC', 'OTHER', name='outcometype'), nullable=False),
-    sa.ForeignKeyConstraint(['protocol_outcome_id'], ['protocol_outcomes.protocol_outcome_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_primary_outcome_id')
+    sa.ForeignKeyConstraint(['protocol_outcome_id'], ['protocol_outcomes.protocol_outcome_id'], name=op.f('fk_study_outcomes_protocol_outcome_id_protocol_outcomes')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_outcomes_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_primary_outcome_id', name=op.f('pk_study_outcomes')),
+    sa.UniqueConstraint('study_id', 'protocol_outcome_id', name=op.f('uq_study_outcomes_study_id'))
     )
     op.create_index(op.f('ix_study_outcomes_type'), 'study_outcomes', ['type'], unique=False)
     op.create_table('study_references',
@@ -698,26 +729,31 @@ def upgrade():
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('reference_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.Enum('STANDARD', 'RESULTS', name='referencetype'), nullable=False),
-    sa.ForeignKeyConstraint(['reference_id'], ['references.reference_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_reference_id')
+    sa.ForeignKeyConstraint(['reference_id'], ['references.reference_id'], name=op.f('fk_study_references_reference_id_references')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_references_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_reference_id', name=op.f('pk_study_references')),
+    sa.UniqueConstraint('study_id', 'reference_id', name=op.f('uq_study_references_study_id'))
     )
     op.create_index(op.f('ix_study_references_type'), 'study_references', ['type'], unique=False)
     op.create_table('study_sponsors',
     sa.Column('study_sponsor_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('sponsor_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['sponsor_id'], ['sponsors.sponsor_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_sponsor_id')
+    sa.Column('type', sa.Enum('LEAD', 'COLLABORATOR', name='sponsortype'), nullable=False),
+    sa.ForeignKeyConstraint(['sponsor_id'], ['sponsors.sponsor_id'], name=op.f('fk_study_sponsors_sponsor_id_sponsors')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_sponsors_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_sponsor_id', name=op.f('pk_study_sponsors')),
+    sa.UniqueConstraint('study_id', 'sponsor_id', name=op.f('uq_study_sponsors_study_id'))
     )
+    op.create_index(op.f('ix_study_sponsors_type'), 'study_sponsors', ['type'], unique=False)
     op.create_table('study_study_docs',
     sa.Column('study_study_doc_id', sa.BigInteger(), nullable=False),
     sa.Column('study_id', sa.BigInteger(), nullable=False),
     sa.Column('study_doc_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['study_doc_id'], ['study_docs.study_doc_id'], ),
-    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], ),
-    sa.PrimaryKeyConstraint('study_study_doc_id')
+    sa.ForeignKeyConstraint(['study_doc_id'], ['study_docs.study_doc_id'], name=op.f('fk_study_study_docs_study_doc_id_study_docs')),
+    sa.ForeignKeyConstraint(['study_id'], ['studies.study_id'], name=op.f('fk_study_study_docs_study_id_studies')),
+    sa.PrimaryKeyConstraint('study_study_doc_id', name=op.f('pk_study_study_docs')),
+    sa.UniqueConstraint('study_id', 'study_doc_id', name=op.f('uq_study_study_docs_study_id'))
     )
     # ### end Alembic commands ###
 
@@ -725,6 +761,7 @@ def upgrade():
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('study_study_docs')
+    op.drop_index(op.f('ix_study_sponsors_type'), table_name='study_sponsors')
     op.drop_table('study_sponsors')
     op.drop_index(op.f('ix_study_references_type'), table_name='study_references')
     op.drop_table('study_references')
@@ -768,12 +805,14 @@ def downgrade():
     op.drop_table('measure_class_categories')
     op.drop_table('measure_class_analyzeds')
     op.drop_index(op.f('ix_investigators_role'), table_name='investigators')
+    op.drop_index(op.f('ix_investigators_md5'), table_name='investigators')
     op.drop_table('investigators')
     op.drop_table('intervention_arm_groups')
     op.drop_table('intervention_aliases')
     op.drop_table('event_list_categories')
     op.drop_table('event_counts')
     op.drop_table('event_category_events')
+    op.drop_index(op.f('ix_contacts_md5'), table_name='contacts')
     op.drop_table('contacts')
     op.drop_table('baseline_measures')
     op.drop_table('baseline_measure_analyzeds')
@@ -782,7 +821,7 @@ def downgrade():
     op.drop_table('study_docs')
     op.drop_table('study_design_infos')
     op.drop_table('study_dates')
-    op.drop_index(op.f('ix_sponsors_type'), table_name='sponsors')
+    op.drop_index(op.f('ix_sponsors_md5'), table_name='sponsors')
     op.drop_index(op.f('ix_sponsors_class'), table_name='sponsors')
     op.drop_table('sponsors')
     op.drop_table('responsible_parties')
