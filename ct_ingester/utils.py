@@ -56,3 +56,23 @@ def log_ingestion_of_document(
         return wrapper
 
     return log_ingestion_of_document_decorator
+
+
+def return_first_item(func):
+    """Decorator that can be used to return the first item of a callable's
+    `list` return."""
+
+    # Define the wrapper function.
+    def wrapper(self, *args, **kwargs):
+
+        # Execute the decorated method with the provided arguments.
+        result = func(self, *args, **kwargs)
+
+        # If the function returned a result and that result is a list then
+        # return the first item on that list.
+        if result and isinstance(result, list):
+            result = result[0]
+
+        return result
+
+    return wrapper
