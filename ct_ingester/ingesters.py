@@ -5,7 +5,6 @@ from typing import Union
 
 from ct_ingester.loggers import create_logger
 from ct_ingester.dals import DalClinicalTrials
-
 from ct_ingester.utils import log_ingestion_of_document
 
 
@@ -39,6 +38,23 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             kwargs=kwargs,
         )
 
+    @staticmethod
+    def _edt(dt):
+        """Extracts the value of the `date` key from a parsed date
+        dictionary.
+
+        Args:
+            dt (dict): A parsed `date` dictionary which (may) contain a `date`
+                and `type` keys.
+
+        Returns:
+            datetime.date: The value of the `date` key or `None` if not defined.
+        """
+        if dt and isinstance(dt, dict) and ("date" in dt):
+            return dt["date"]
+
+        return None
+
     @log_ingestion_of_document(document_name="sponsor")
     def ingest_sponsor(
         self,
@@ -61,7 +77,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         obj_id = self.dal.iodi_sponsor(
             agency=doc.get("agency"),
             agency_class=doc.get("agency_class"),
-            sponsor_type=doc.get("type"),
         )
 
         return obj_id
@@ -110,8 +125,8 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_keyword(
-            keyword=doc.get("condition"),
+        obj_id = self.dal.iodi_condition(
+            condition=doc.get("condition"),
         )
 
         return obj_id
@@ -141,7 +156,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             name=doc.get("name"),
             city=address.get("city"),
             state=address.get("state"),
-            zip_code=address.get("zip_code"),
+            zip_code=address.get("zip"),
             country=address.get("country"),
         )
 
@@ -167,9 +182,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             return None
 
         person_obj_id = self.dal.iodi_person(
-            name_first=doc.get("name_first"),
-            name_middle=doc.get("name_middle"),
-            name_last=doc.get("name_last"),
+            name_first=doc.get("first_name"),
+            name_middle=doc.get("middle_name"),
+            name_last=doc.get("last_name"),
             degrees=doc.get("degrees"),
         )
 
@@ -201,9 +216,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             return None
 
         person_obj_id = self.dal.iodi_person(
-            name_first=doc.get("name_first"),
-            name_middle=doc.get("name_middle"),
-            name_last=doc.get("name_last"),
+            name_first=doc.get("first_name"),
+            name_middle=doc.get("middle_name"),
+            name_last=doc.get("last_name"),
             degrees=doc.get("degrees"),
         )
 
@@ -506,12 +521,13 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 alias_id=alias_id,
             )
 
-        for arm_group_label in doc.get("arm_group_labels", []):
+        for arm_group_label_data in doc.get("arm_group_labels", []):
+            arm_group_label = arm_group_label_data.get("arm_group_label")
             if arm_group_label not in arm_group_labels_ids:
                 continue
             self.dal.iodi_intervention_arm_group(
                 intervention_id=obj_id,
-                arm_group_id=arm_group_labels_ids.get("arm_group_label"),
+                arm_group_id=arm_group_labels_ids[arm_group_label],
             )
 
         return obj_id
@@ -538,7 +554,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         obj_id = self.dal.iodi_reference(
             citation=doc.get("citation"),
             pmid=doc.get("pmid"),
-            type=doc.get("type"),
         )
 
         return obj_id
@@ -563,20 +578,32 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             return None
 
         obj_id = self.dal.iodi_study_dates(
-            study_first_submitted=doc.get("study_first_submitted"),
-            study_first_submitted_qc=doc.get("study_first_submitted_qc"),
-            study_first_posted=doc.get("study_first_posted"),
-            results_first_submitted=doc.get("results_first_submitted"),
-            results_first_submitted_qc=doc.get("results_first_submitted_qc"),
-            results_first_posted=doc.get("results_first_posted"),
-            disposition_first_submitted=doc.get("disposition_first_submitted"),
-            disposition_first_submitted_qc=doc.get(
-                "disposition_first_submitted_qc"
+            study_first_submitted=self._edt(doc.get("study_first_submitted")),
+            study_first_submitted_qc=self._edt(
+                doc.get("study_first_submitted_qc")
             ),
-            disposition_first_posted=doc.get("disposition_first_posted"),
-            last_update_submitted=doc.get("last_update_submitted"),
-            last_update_submitted_qc=doc.get("last_update_submitted_qc"),
-            last_update_posted=doc.get("last_update_posted"),
+            study_first_posted=self._edt(doc.get("study_first_posted")),
+            results_first_submitted=self._edt(
+                doc.get("results_first_submitted")
+            ),
+            results_first_submitted_qc=self._edt(
+                doc.get("results_first_submitted_qc")
+            ),
+            results_first_posted=self._edt(doc.get("results_first_posted")),
+            disposition_first_submitted=self._edt(
+                doc.get("disposition_first_submitted")
+            ),
+            disposition_first_submitted_qc=self._edt(
+                doc.get("disposition_first_submitted_qc")
+            ),
+            disposition_first_posted=self._edt(
+                doc.get("disposition_first_posted")
+            ),
+            last_update_submitted=self._edt(doc.get("last_update_submitted")),
+            last_update_submitted_qc=self._edt(
+                doc.get("last_update_submitted_qc")
+            ),
+            last_update_posted=self._edt(doc.get("last_update_posted")),
         )
 
         return obj_id
@@ -605,6 +632,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             organization=doc.get("organization"),
             responsible_party_type=doc.get("responsible_party_type"),
             investigator_affiliation=doc.get("investigator_affiliation"),
+            investigator_full_name=doc.get("investigator_full_name"),
             investigator_title=doc.get("investigator_title"),
         )
 
@@ -783,7 +811,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         )
 
         # Create the `StudyDates` record and hold on to its primary-key ID.
-        study_dates_id = self.ingest_study_dates(doc)
+        study_dates_id = self.ingest_study_dates(doc.get("study_dates"))
 
         # Create the `ResponsibleParty` record and hold on to its primary-key
         # ID.
@@ -808,10 +836,12 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             overall_status=doc.get("overall_status"),
             last_known_status=doc.get("last_known_status"),
             why_stopped=doc.get("why_stopped"),
-            start_date=doc.get("start_date"),
-            completion_date=doc.get("completion_date"),
-            primary_completion_date=doc.get("primary_completion_date"),
-            verification_date=doc.get("verification_date"),
+            start_date=self._edt(doc.get("start_date")),
+            completion_date=self._edt(doc.get("completion_date")),
+            primary_completion_date=self._edt(
+                doc.get("primary_completion_date")
+            ),
+            verification_date=self._edt(doc.get("verification_date")),
             phase=doc.get("phase"),
             study_type=doc.get("study_type"),
             expanded_access_info_id=expanded_access_info_id,
@@ -837,14 +867,19 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Create `Sponsor` and `StudySponsor` records.
         for sponsor in doc.get("sponsors", []):
             sponsor_id = self.ingest_sponsor(sponsor)
-            self.dal.iodi_study_sponsor(study_id=obj_id, sponsor_id=sponsor_id)
+            self.dal.iodi_study_sponsor(
+                study_id=obj_id,
+                sponsor_id=sponsor_id,
+                sponsor_type=sponsor.get("type"),
+            )
 
         # Create `ProtocolOutcome` and `StudyOutcome` records.
         for protocol_outcome in doc.get("protocol_outcomes", []):
             protocol_outcome_id = self.ingest_protocol_outcome(protocol_outcome)
             self.dal.iodi_study_outcome(
                 study_id=obj_id,
-                outcome_id=protocol_outcome_id,
+                protocol_outcome_id=protocol_outcome_id,
+                outcome_type=protocol_outcome.get("type"),
             )
 
         # Create `Condition` and `StudyCondition` records.
@@ -859,7 +894,8 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         arm_group_labels_ids = {}
         for arm_group in doc.get("arm_groups", []):
             arm_group_id = self.ingest_arm_group(arm_group)
-            arm_group_labels_ids[arm_group.get("label")] = arm_group_id
+            arm_group_label = arm_group.get("arm_group_label")
+            arm_group_labels_ids[arm_group_label] = arm_group_id
             self.dal.iodi_study_arm_group(
                 study_id=obj_id,
                 arm_group_id=arm_group_id
@@ -898,6 +934,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             self.dal.iodi_study_reference(
                 study_id=obj_id,
                 reference_id=reference_id,
+                reference_type=reference.get("type"),
             )
 
         # Create `Keyword` and `StudyKeyword` records.
@@ -924,5 +961,5 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 study_id=obj_id,
                 study_doc_id=study_doc_id,
             )
-        
+
         return obj_id
