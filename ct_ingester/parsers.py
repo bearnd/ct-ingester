@@ -37,8 +37,10 @@ class ParserXmlBase(object):
         )
 
     @staticmethod
-    def _et(element):
-        """Extracts the element text (ET)"""
+    def _et(
+        element: etree.Element,
+    ) -> Union[str, None]:
+        """Extracts the element text (ET)."""
 
         text = None
         if element is not None:
@@ -46,12 +48,14 @@ class ParserXmlBase(object):
 
         if not text:
             text = None
+        else:
+            text = text.strip()
 
         return text
 
     @staticmethod
     def _eav(element, attribute):
-        """Extracts the element attrbiute value (EAV)"""
+        """Extracts the element attribute value (EAV)"""
 
         value = None
         if element is not None:
@@ -189,9 +193,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             return {}
 
         variable_date = {
-            "type": ActualType.get_member(
-                self._eav(element, "type")
-            ),
+            "type": ActualType.get_member(self._eav(element, "type")),
             "date": parse_date_pattern(
                 str_date=self._et(element),
                 do_cast_to_date=True,
@@ -483,7 +485,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
 
         enrollment = {
             "value": self._et(element),
-            "type": self._eav(element, "type"),
+            "type": ActualType.get_member(self._eav(element, "type")),
         }
 
         return enrollment
@@ -684,9 +686,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             "middle_name": self._et(element.find("middle_name")),
             "last_name": self._et(element.find("last_name")),
             "degrees": self._et(element.find("degrees")),
-            "role": RoleType.get_member(
-                self._et(element.find("role"))
-            ),
+            "role": RoleType.get_member(self._et(element.find("role"))),
             "affiliation": self._et(element.find("affiliation")),
         }
 
@@ -1076,7 +1076,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
         if _element_intervention_browse is not None:
             for _element in _element_intervention_browse.findall("mesh_term"):
                 mesh_term = {
-                    "type": MeshTermType.CONDITION,
+                    "type": MeshTermType.INTERVENTION,
                     "mesh_term": self._et(_element),
                 }
                 mesh_terms.append(mesh_term)
