@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: cc7b0ebf3ec5
+Revision ID: 73d62992f206
 Revises: 
-Create Date: 2018-04-04 11:32:52.682999
+Create Date: 2018-04-04 22:01:07.571031
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cc7b0ebf3ec5'
+revision = '73d62992f206'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -233,7 +233,7 @@ def upgrade():
     sa.Column('protocol_outcome_id', sa.BigInteger(), nullable=False),
     sa.Column('measure', sa.Unicode(), nullable=False),
     sa.Column('time_frame', sa.Unicode(), nullable=True),
-    sa.Column('description', sa.Unicode(), nullable=False),
+    sa.Column('description', sa.Unicode(), nullable=True),
     sa.PrimaryKeyConstraint('protocol_outcome_id', name=op.f('pk_protocol_outcomes'))
     )
     op.create_table('references',
@@ -607,8 +607,8 @@ def upgrade():
     sa.Column('biospec_retention', sa.Enum('NONE', 'SAMPLES_W_DNA', 'SAMPLES_WO_DNA', name='biospecretentiontype'), nullable=True),
     sa.Column('biospec_description', sa.Unicode(), nullable=True),
     sa.Column('eligibility_id', sa.BigInteger(), nullable=False),
-    sa.Column('contact_primary_id', sa.BigInteger(), nullable=False),
-    sa.Column('contact_backup_id', sa.BigInteger(), nullable=False),
+    sa.Column('contact_primary_id', sa.BigInteger(), nullable=True),
+    sa.Column('contact_backup_id', sa.BigInteger(), nullable=True),
     sa.Column('study_dates_id', sa.BigInteger(), nullable=False),
     sa.Column('responsible_party_id', sa.BigInteger(), nullable=False),
     sa.Column('patient_data_id', sa.BigInteger(), nullable=True),
