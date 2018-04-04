@@ -76,6 +76,8 @@ from ct_ingester.orm_enums import PhaseType
 from ct_ingester.orm_enums import StudyType
 from ct_ingester.orm_enums import BiospecRetentionType
 from ct_ingester.orm_enums import MeshTermType
+from ct_ingester.orm_enums import ReferenceType
+from ct_ingester.utils import return_first_item
 
 
 class DalClinicalTrials(DalBase):
@@ -186,7 +188,6 @@ class DalClinicalTrials(DalBase):
         self,
         agency: str,
         agency_class: AgencyClassType,
-        sponsor_type: SponsorType,
         session: sqlalchemy.orm.Session=None,
     ) -> int:
         """Creates a new `Sponsor` record in an IODI manner.
@@ -195,8 +196,6 @@ class DalClinicalTrials(DalBase):
             agency (str): The sponsor agency.
             agency_class (AgencyClassType): An enumeration member denoting the
                 sponsor agency class.
-            sponsor_type (SponsorType): An enumeration member denoting the
-                sponsor type.
             session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
                 through which the record will be added. Defaults to `None` in
                 which case a new session is automatically created and terminated
@@ -206,19 +205,34 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Sponsor` record.
         """
 
+        # Create and populate a `Sponsor` object so that we can retrieve the
+        # MD5 hash.
+        sponsor_obj = Sponsor()
+        sponsor_obj.agency = agency
+        sponsor_obj.agency_class = agency_class
+
         statement = insert(
             Sponsor,
             values={
                 "agency": agency,
                 "class": agency_class,
-                "type": sponsor_type,
+                "md5": sponsor_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            sponsor_obj = self.get_by_md5(
+                orm_class=Sponsor,
+                md5=sponsor_obj.md5,
+                session=session,
+            )  # type: Sponsor
+            return sponsor_obj.sponsor_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_keyword(
         self,
@@ -238,17 +252,32 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Keyword` record.
         """
 
+        # Create and populate a `Person` object so that we can retrieve the
+        # MD5 hash.
+        keyword_obj = Keyword()
+        keyword_obj.keyword = keyword
+
         statement = insert(
             Keyword,
             values={
                 "keyword": keyword,
+                "md5": keyword_obj.md5
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            keyword_obj = self.get_by_md5(
+                orm_class=Keyword,
+                md5=keyword_obj.md5,
+                session=session,
+            )  # type: Keyword
+            return keyword_obj.keyword_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_condition(
         self,
@@ -268,17 +297,32 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Condition` record.
         """
 
+        # Create and populate a `Condition` object so that we can retrieve the
+        # MD5 hash.
+        condition_obj = Condition()
+        condition_obj.condition = condition
+
         statement = insert(
             Condition,
             values={
                 "condition": condition,
+                "md5": condition_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            condition_obj = self.get_by_md5(
+                orm_class=Condition,
+                md5=condition_obj.md5,
+                session=session,
+            )  # type: Condition
+            return condition_obj.condition_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_facility(
         self,
@@ -306,6 +350,15 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Condition` record.
         """
 
+        # Create and populate a `Facility` object so that we can retrieve the
+        # MD5 hash.
+        facility_obj = Facility()
+        facility_obj.name = name,
+        facility_obj.city = city
+        facility_obj.state = state
+        facility_obj.zip_code = zip_code
+        facility_obj.country = country
+
         statement = insert(
             Facility,
             values={
@@ -314,13 +367,23 @@ class DalClinicalTrials(DalBase):
                 "state": state,
                 "zip_code": zip_code,
                 "country": country,
+                "md5": facility_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            facility_obj = self.get_by_md5(
+                orm_class=Facility,
+                md5=facility_obj.md5,
+                session=session,
+            )  # type: Facility
+            return facility_obj.facility_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_person(
         self,
@@ -346,6 +409,14 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Person` record.
         """
 
+        # Create and populate a `Person` object so that we can retrieve the
+        # MD5 hash.
+        person_obj = Person()
+        person_obj.name_first = name_first
+        person_obj.name_middle = name_middle
+        person_obj.name_last = name_last
+        person_obj.degrees = degrees
+
         statement = insert(
             Person,
             values={
@@ -353,13 +424,23 @@ class DalClinicalTrials(DalBase):
                 "name_middle": name_middle,
                 "name_last": name_last,
                 "degrees": degrees,
+                "md5": person_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            person_obj = self.get_by_md5(
+                orm_class=Person,
+                md5=person_obj.md5,
+                session=session,
+            )  # type: Person
+            return person_obj.person_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_contact(
         self,
@@ -385,6 +466,14 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Contact` record.
         """
 
+        # Create and populate a `Contact` object so that we can retrieve the
+        # MD5 hash.
+        contact_obj = Contact()
+        contact_obj.person_id = person_id
+        contact_obj.phone = phone
+        contact_obj.phone_ext = phone_ext
+        contact_obj.email = email
+
         statement = insert(
             Contact,
             values={
@@ -392,13 +481,23 @@ class DalClinicalTrials(DalBase):
                 "phone": phone,
                 "phone_ext": phone_ext,
                 "email": email,
+                "md5": contact_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            contact_obj = self.get_by_md5(
+                orm_class=Contact,
+                md5=contact_obj.md5,
+                session=session,
+            )  # type: Contact
+            return contact_obj.contact_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_investigator(
         self,
@@ -422,19 +521,36 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Investigator` record.
         """
 
+        # Create and populate a `Investigator` object so that we can retrieve
+        # the MD5 hash.
+        investigator_obj = Investigator()
+        investigator_obj.person_id = person_id
+        investigator_obj.role = role
+        investigator_obj.affiliation = affiliation
+
         statement = insert(
             Investigator,
             values={
                 "person_id": person_id,
                 "role": role,
                 "affiliation": affiliation,
+                "md5": investigator_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            investigator_obj = self.get_by_md5(
+                orm_class=Investigator,
+                md5=investigator_obj.md5,
+                session=session,
+            )  # type: Investigator
+            return investigator_obj.investigator_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_location(
         self,
@@ -472,8 +588,21 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            location_obj = self.get_by_attrs(
+                orm_class=Location,
+                attrs_names_values={
+                    "facility_id": facility_id,
+                    "contact_primary_id": contact_primary_id,
+                    "contact_backup_id": contact_backup_id,
+                },
+                session=session,
+            )  # type: Location
+            return location_obj.location_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_location_investigator(
         self,
@@ -506,8 +635,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=LocationInvestigator,
+                attrs_names_values={
+                    "location_id": location_id,
+                    "investigator_id": investigator_id,
+                },
+                session=session,
+            )  # type: LocationInvestigator
+            return obj.location_investigator_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_oversight_info(
         self,
@@ -556,6 +697,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_expanded_access_info(
         self,
@@ -595,6 +737,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_design_info(
         self,
@@ -649,6 +792,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_protocol_outcome(
         self,
@@ -685,6 +829,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_group(
         self,
@@ -721,6 +866,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_analysis(
         self,
@@ -804,6 +950,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_analysis_group(
         self,
@@ -835,8 +982,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=AnalysisGroup,
+                attrs_names_values={
+                    "analysis_id": analysis_id,
+                    "group_id": group_id,
+                },
+                session=session,
+            )  # type: AnalysisGroup
+            return obj.analysis_group_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_measure_count(
         self,
@@ -870,6 +1029,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_measure_analyzed(
         self,
@@ -903,6 +1063,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_measure_analyzed_count(
         self,
@@ -938,6 +1099,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_measurement(
         self,
@@ -980,6 +1142,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_result_outcome(
         self,
@@ -1028,6 +1191,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_result_outcome_group(
         self,
@@ -1062,6 +1226,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_enrollment(
         self,
@@ -1095,6 +1260,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_arm_group(
         self,
@@ -1131,6 +1297,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_intervention(
         self,
@@ -1167,6 +1334,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_alias(
         self,
@@ -1186,17 +1354,32 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `Alias` record.
         """
 
+        # Create and populate a `Alias` object so that we can retrieve
+        # the MD5 hash.
+        alias_obj = Alias()
+        alias_obj.alias = alias
+
         statement = insert(
             Alias,
             values={
                 "alias": alias,
+                "md5": alias_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_md5(
+                orm_class=Alias,
+                md5=alias_obj.md5,
+                session=session,
+            )  # type: Alias
+            return obj.alias_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_intervention_alias(
         self,
@@ -1229,8 +1412,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=InterventionAlias,
+                attrs_names_values={
+                    "intervention_id": intervention_id,
+                    "alias_id": alias_id,
+                },
+                session=session,
+            )  # type: InterventionAlias
+            return obj.intervention_alias_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_intervention_arm_group(
         self,
@@ -1263,8 +1458,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=InterventionArmGroup,
+                attrs_names_values={
+                    "intervention_id": intervention_id,
+                    "arm_group_id": arm_group_id,
+                },
+                session=session,
+            )  # type: InterventionArmGroup
+            return obj.intervention_arm_group_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_eligibility(
         self,
@@ -1321,6 +1528,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_reference(
         self,
@@ -1352,8 +1560,19 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=Reference,
+                attrs_names_values={
+                    "pmid": pmid,
+                },
+                session=session,
+            )  # type: Reference
+            return obj.reference_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_responsible_party(
         self,
@@ -1403,6 +1622,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_mesh_term(
         self,
@@ -1422,17 +1642,32 @@ class DalClinicalTrials(DalBase):
             int: The primary key ID of the `MeshTerm` record.
         """
 
+        # Create and populate a `MeshTerm` object so that we can retrieve the
+        # MD5 hash.
+        mesh_term_obj = MeshTerm()
+        mesh_term_obj.term = term
+
         statement = insert(
             MeshTerm,
             values={
                 "term": term,
+                "md5": mesh_term_obj.md5,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_md5(
+                orm_class=MeshTerm,
+                md5=mesh_term_obj.md5,
+                session=session,
+            )  # type: MeshTerm
+            return obj.mesh_term_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_patient_data(
         self,
@@ -1466,6 +1701,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_doc(
         self,
@@ -1505,6 +1741,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_dates(
         self,
@@ -1582,6 +1819,7 @@ class DalClinicalTrials(DalBase):
 
         return result.inserted_primary_key
 
+    @return_first_item
     @with_session_scope()
     def iodi_study(
         self,
@@ -1713,8 +1951,19 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=Study,
+                attrs_names_values={
+                    "nct_id": nct_id,
+                },
+                session=session,
+            )  # type: Study
+            return obj.study_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_alias(
         self,
@@ -1746,13 +1995,26 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyAlias,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "alias_id": alias_id,
+                },
+                session=session,
+            )  # type: StudyAlias
+            return obj.study_alias_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_sponsor(
         self,
         study_id: int,
         sponsor_id: int,
+        sponsor_type: SponsorType,
         session: sqlalchemy.orm.Session = None,
     ) -> int:
         """Creates a new `StudySponsor` record in an IODI manner.
@@ -1760,6 +2022,8 @@ class DalClinicalTrials(DalBase):
         Args:
             study_id (int): The linked `Study` record primary-key ID.
             sponsor_id (int): The linked `Sponsor` record primary-key ID.
+            sponsor_type (SponsorType): An enumeration member denoting the
+                sponsor type.
             session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
                 through which the record will be added. Defaults to `None` in
                 which case a new session is automatically created and terminated
@@ -1774,25 +2038,41 @@ class DalClinicalTrials(DalBase):
             values={
                 "study_id": study_id,
                 "sponsor_id": sponsor_id,
+                "type": sponsor_type,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudySponsor,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "sponsor_id": sponsor_id,
+                },
+                session=session,
+            )  # type: StudySponsor
+            return obj.study_sponsor_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_outcome(
         self,
         study_id: int,
-        outcome_id: int,
+        protocol_outcome_id: int,
+        outcome_type: OutcomeType,
         session: sqlalchemy.orm.Session = None,
     ) -> int:
         """Creates a new `StudyOutcome` record in an IODI manner.
 
         Args:
             study_id (int): The linked `Study` record primary-key ID.
-            outcome_id (int): The linked `Outcome` record primary-key ID.
+            protocol_outcome_id (int): The linked `Outcome` record primary-key
+                ID.
+            outcome_type (OutcomeType): The linked `Outcome` type.
             session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
                 through which the record will be added. Defaults to `None` in
                 which case a new session is automatically created and terminated
@@ -1806,14 +2086,27 @@ class DalClinicalTrials(DalBase):
             StudyOutcome,
             values={
                 "study_id": study_id,
-                "outcome_id": outcome_id,
+                "protocol_outcome_id": protocol_outcome_id,
+                "type": outcome_type,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyOutcome,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "protocol_outcome_id": protocol_outcome_id,
+                },
+                session=session,
+            )  # type: StudyOutcome
+            return obj.study_primary_outcome_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_condition(
         self,
@@ -1845,8 +2138,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyCondition,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "condition_id": condition_id,
+                },
+                session=session,
+            )  # type: StudyCondition
+            return obj.study_condition_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_arm_group(
         self,
@@ -1878,8 +2183,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyArmGroup,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "arm_group_id": arm_group_id,
+                },
+                session=session,
+            )  # type: StudyArmGroup
+            return obj.study_arm_group_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_intervention(
         self,
@@ -1912,8 +2229,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyIntervention,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "intervention_id": intervention_id,
+                },
+                session=session,
+            )  # type: StudyIntervention
+            return obj.study_intervention_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_investigator(
         self,
@@ -1946,8 +2275,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyInvestigator,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "investigator_id": investigator_id,
+                },
+                session=session,
+            )  # type: StudyInvestigator
+            return obj.study_investigator_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_location(
         self,
@@ -1979,20 +2320,34 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyLocation,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "location_id": location_id,
+                },
+                session=session,
+            )  # type: StudyLocation
+            return obj.study_location_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_reference(
         self,
         study_id: int,
         reference_id: int,
+        reference_type: ReferenceType,
         session: sqlalchemy.orm.Session = None,
     ) -> int:
         """Creates a new `StudyReference` record in an IODI manner.
 
         Args:
             study_id (int): The linked `Study` record primary-key ID.
-            reference_id (int): The linked `Location` record primary-key ID.
+            reference_id (int): The linked `Reference` record primary-key ID.
+            reference_type (ReferenceType): The reference type.
             session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
                 through which the record will be added. Defaults to `None` in
                 which case a new session is automatically created and terminated
@@ -2007,13 +2362,26 @@ class DalClinicalTrials(DalBase):
             values={
                 "study_id": study_id,
                 "reference_id": reference_id,
+                "type": reference_type,
             }
         ).on_conflict_do_nothing()  # type: Insert
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyReference,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "reference_id": reference_id,
+                },
+                session=session,
+            )  # type: StudyReference
+            return obj.study_reference_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_keyword(
         self,
@@ -2045,8 +2413,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyKeyword,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "keyword_id": keyword_id,
+                },
+                session=session,
+            )  # type: StudyKeyword
+            return obj.study_keyword_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_mesh_term(
         self,
@@ -2081,8 +2461,20 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyMeshTerm,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "mesh_term_id": mesh_term_id,
+                },
+                session=session,
+            )  # type: StudyMeshTerm
+            return obj.study_mesh_term_id
 
+    @return_first_item
     @with_session_scope()
     def iodi_study_study_doc(
         self,
@@ -2114,4 +2506,15 @@ class DalClinicalTrials(DalBase):
 
         result = session.execute(statement)  # type: ResultProxy
 
-        return result.inserted_primary_key
+        if result.inserted_primary_key:
+            return result.inserted_primary_key
+        else:
+            obj = self.get_by_attrs(
+                orm_class=StudyStudyDoc,
+                attrs_names_values={
+                    "study_id": study_id,
+                    "study_doc_id": study_doc_id,
+                },
+                session=session,
+            )  # type: StudyStudyDoc
+            return obj.study_study_doc_id
