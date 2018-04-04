@@ -106,6 +106,82 @@ class DalClinicalTrials(DalBase):
         )
 
     @with_session_scope()
+    def get_by_md5(
+        self,
+        orm_class,
+        md5: bytes,
+        session: sqlalchemy.orm.Session = None,
+    ):
+        """Retrieves an object of a class derived off `OrmBase` through its MD5.
+
+        Args:
+            md5 (bytes): The MD5 has of the `OrmBase` record to be retrieved.
+            orm_class: An object of a class derived off `OrmBase` implementing
+                an `md5` attribute.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            The matching `OrmBase` record object or `None` if no such record
+                exists.
+        """
+
+        query = session.query(orm_class)
+        query = query.filter(orm_class.md5 == md5)
+
+        obj = query.one_or_none()
+
+        return obj
+
+    @with_session_scope()
+    def get_by_attrs(
+        self,
+        orm_class,
+        attrs_names_values: dict,
+        session: sqlalchemy.orm.Session = None,
+    ):
+        """Retrieves the record object of `orm_class` type through attribute
+        name-value pairs.
+
+        Note:
+            This method should only be used through unique attributes/fields as
+            it uses the `one_or_none` retrieval method and will raise an
+            exception should multiple records with a given attribute value be
+            found.
+
+        Args:
+            orm_class: An object of a class derived off `OrmBase` implementing
+                an `md5` attribute.
+            attrs_names_values (dict): A dictionary of attribute name-value
+                pairs to be used in filtering out a single record.
+            session (sqlalchemy.orm.Session, optional): An SQLAlchemy session
+                through which the record will be added. Defaults to `None` in
+                which case a new session is automatically created and terminated
+                upon completion.
+
+        Returns:
+            orm_class: The record object of type `orm_class` matching the
+                attribute name-value pairs and `None` if no record exists.
+
+        Raises:
+            sqlalchemy.orm.exc.MultipleResultsFound: Raised when multiple
+                records were found with the given attribute(s).
+        """
+
+        query = session.query(orm_class)
+        for attr_name, attr_value in attrs_names_values.items():
+            query = query.filter(
+                getattr(orm_class, attr_name) == attr_value
+            )
+
+        obj = query.one_or_none()
+
+        return obj
+
+    @return_first_item
+    @with_session_scope()
     def iodi_sponsor(
         self,
         agency: str,
