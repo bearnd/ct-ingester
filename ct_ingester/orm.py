@@ -62,12 +62,13 @@ class Sponsor(Base, OrmBase):
         index=True
     )
 
-    # Sponsor type (defined by the name of the element of `<sponsor>` type.
-    sponsor_type = sqlalchemy.Column(
-        name="type",
-        type_=sqlalchemy.types.Enum(SponsorType),
+    # MD5 hash of the keyword.
+    md5 = sqlalchemy.Column(
+        name="md5",
+        type_=sqlalchemy.types.Binary(),
+        unique=True,
+        index=True,
         nullable=False,
-        index=True
     )
 
     # Relationship to a list of `Study` records.
@@ -76,6 +77,31 @@ class Sponsor(Base, OrmBase):
         secondary="study_sponsors",
         back_populates="sponsors"
     )
+
+    @sqlalchemy.orm.validates(
+        "agency",
+        "agency_class",
+    )
+    def update_md5(self, key, value):
+        attrs = {
+            "agency": self.agency,
+            "agency_class": self.agency_class,
+        }
+        attrs[key] = value
+
+        # Retrieve the full concatenated name.
+        name = " ".join([str(value) for value in attrs.values()])
+
+        # Encode the full concatenated name to UTF8 (in case it contains
+        # unicode characters).
+        name_encoded = name.encode("utf-8")
+
+        # Calculate the MD5 hash of the encoded full concatenated name and store
+        # it under the `md5` attribute.
+        md5 = hashlib.md5(name_encoded).digest()
+        self.md5 = md5
+
+        return value
 
 
 class Keyword(Base, OrmBase):
@@ -339,12 +365,14 @@ class Person(Base, OrmBase):
         "name_first",
         "name_middle",
         "name_last",
+        "degrees",
     )
     def update_md5(self, key, value):
         attrs = {
             "name_first": self.name_first,
             "name_middle": self.name_middle,
             "name_last": self.name_last,
+            "degrees": self.degrees,
         }
         attrs[key] = value
 
@@ -405,10 +433,48 @@ class Contact(Base, OrmBase):
         nullable=True,
     )
 
+    # MD5 hash of the contact's full name.
+    md5 = sqlalchemy.Column(
+        name="md5",
+        type_=sqlalchemy.types.Binary(),
+        unique=True,
+        index=True,
+        nullable=False
+    )
+
     # Relationship to a `Person` record.
     person = sqlalchemy.orm.relationship(
         argument="Person",
     )
+
+    @sqlalchemy.orm.validates(
+        "person_id",
+        "phone",
+        "phone_ext",
+        "email",
+    )
+    def update_md5(self, key, value):
+        attrs = {
+            "person_id": self.person_id,
+            "phone": self.phone,
+            "phone_ext": self.phone_ext,
+            "email": self.email,
+        }
+        attrs[key] = value
+
+        # Retrieve the full concatenated name.
+        name = " ".join([str(value) for value in attrs.values()])
+
+        # Encode the full concatenated name to UTF8 (in case it contains
+        # unicode characters).
+        name_encoded = name.encode("utf-8")
+
+        # Calculate the MD5 hash of the encoded full concatenated name and store
+        # it under the `md5` attribute.
+        md5 = hashlib.md5(name_encoded).digest()
+        self.md5 = md5
+
+        return value
 
 
 class Investigator(Base, OrmBase):
@@ -447,6 +513,15 @@ class Investigator(Base, OrmBase):
         nullable=True,
     )
 
+    # MD5 hash of the contact's full name.
+    md5 = sqlalchemy.Column(
+        name="md5",
+        type_=sqlalchemy.types.Binary(),
+        unique=True,
+        index=True,
+        nullable=False
+    )
+
     # Relationship to a `Person` record.
     person = sqlalchemy.orm.relationship(
         argument="Person",
@@ -456,8 +531,34 @@ class Investigator(Base, OrmBase):
     locations = sqlalchemy.orm.relationship(
         argument="Location",
         secondary="location_investigators",
-        back_populates="investigators"
     )
+
+    @sqlalchemy.orm.validates(
+        "person_id",
+        "role",
+        "affiliation",
+    )
+    def update_md5(self, key, value):
+        attrs = {
+            "person_id": self.person_id,
+            "role": self.role,
+            "affiliation": self.affiliation,
+        }
+        attrs[key] = value
+
+        # Retrieve the full concatenated name.
+        name = " ".join([str(value) for value in attrs.values()])
+
+        # Encode the full concatenated name to UTF8 (in case it contains
+        # unicode characters).
+        name_encoded = name.encode("utf-8")
+
+        # Calculate the MD5 hash of the encoded full concatenated name and store
+        # it under the `md5` attribute.
+        md5 = hashlib.md5(name_encoded).digest()
+        self.md5 = md5
+
+        return value
 
 
 class Location(Base, OrmBase):
@@ -507,20 +608,27 @@ class Location(Base, OrmBase):
     # Relationship to a `Contact` record for the primary contact.
     contact_primary = sqlalchemy.orm.relationship(
         argument="Contact",
-        foreign_keys=["contact_primary_id"]
+        foreign_keys=contact_primary_id
     )
 
     # Relationship to a `Contact` record for the backup contact.
     contact_backup = sqlalchemy.orm.relationship(
         argument="Contact",
-        foreign_keys=["contact_backup_id"]
+        foreign_keys=contact_backup_id
     )
 
     # Relationship to a list of `Investigator` records.
     investigators = sqlalchemy.orm.relationship(
         argument="Investigator",
         secondary="location_investigators",
-        back_populates="locations"
+    )
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint(
+            "facility_id",
+            "contact_primary_id",
+            "contact_backup_id",
+        ),
     )
 
 
@@ -1113,7 +1221,6 @@ class Measurement(Base, OrmBase):
     measure_category = sqlalchemy.orm.relationship(
         argument="MeasureCategory",
         secondary="measure_category_measurements",
-        back_populates="measurements"
     )
 
 
@@ -1142,7 +1249,6 @@ class MeasureCategory(Base, OrmBase):
     measurements = sqlalchemy.orm.relationship(
         argument="Measurement",
         secondary="measure_category_measurements",
-        back_populates="measure_category"
     )
 
 
@@ -1191,16 +1297,14 @@ class MeasureClass(Base, OrmBase):
 
     # Relationship to a list of `MeasureAnalyzed` records.
     measure_analyzeds = sqlalchemy.orm.relationship(
-        argument="MeasurementAnalyzed",
+        argument="MeasureAnalyzed",
         secondary="measure_class_analyzeds",
-        back_populates="measure_class"
     )
 
     # Relationship to a list of `MeasureCategory` records.
     measure_categories = sqlalchemy.orm.relationship(
         argument="MeasureCategory",
         secondary="measure_class_categories",
-        back_populates="measure_class"
     )
 
 
@@ -1331,14 +1435,12 @@ class Measure(Base, OrmBase):
     measure_analyzeds = sqlalchemy.orm.relationship(
         argument="MeasureAnalyzed",
         secondary="measure_measure_analyzeds",
-        back_populates="measure"
     )
 
     # Relationship to a list of `MeasureClass` records.
     measure_classes = sqlalchemy.orm.relationship(
         argument="MeasureClass",
         secondary="measure_measure_classes",
-        back_populates="measure"
     )
 
 
@@ -1469,19 +1571,11 @@ class ResultOutcome(Base, OrmBase):
     groups = sqlalchemy.orm.relationship(
         argument="Group",
         secondary="result_outcome_groups",
-        back_populates="result_outcome"
     )
 
     # Relationship to a `Measure` record.
     measure = sqlalchemy.orm.relationship(
         argument="Measure",
-    )
-
-    # Relationship to a list of `Analysis` records.
-    analyses = sqlalchemy.orm.relationship(
-        argument="Analysis",
-        secondary="result_outcome_analyses",
-        back_populates="result_outcome"
     )
 
 
@@ -1618,14 +1712,12 @@ class Intervention(Base, OrmBase):
     arm_groups = sqlalchemy.orm.relationship(
         argument="ArmGroup",
         secondary="intervention_arm_groups",
-        back_populates="intervention"
     )
 
     # Relationship to a list of `Alias` records.
     aliases = sqlalchemy.orm.relationship(
         argument="Alias",
         secondary="intervention_aliases",
-        back_populates="intervention"
     )
 
 
@@ -1657,13 +1749,6 @@ class Alias(Base, OrmBase):
         unique=True,
         index=True,
         nullable=False,
-    )
-
-    # Relationship to a list of `Intervention` records.
-    interventions = sqlalchemy.orm.relationship(
-        argument="Intervention",
-        secondary="intervention_aliases",
-        back_populates="aliases"
     )
 
     @sqlalchemy.orm.validates("alias")
@@ -1853,6 +1938,7 @@ class Reference(Base, OrmBase):
         name="pmid",
         type_=sqlalchemy.types.Integer(),
         nullable=True,
+        unique=True,
     )
 
 
@@ -2070,7 +2156,6 @@ class Participant(Base, OrmBase):
     milestones = sqlalchemy.orm.relationship(
         argument="Milestone",
         secondary="milestone_participants",
-        back_populates="participants"
     )
 
 
@@ -2099,7 +2184,6 @@ class Milestone(Base, OrmBase):
     participants = sqlalchemy.orm.relationship(
         argument="Participant",
         secondary="milestone_participants",
-        back_populates="milestone"
     )
 
 
@@ -2122,13 +2206,6 @@ class DropWithdrawReason(Base, OrmBase):
         name="title",
         type_=sqlalchemy.types.Unicode(),
         nullable=True,
-    )
-
-    # Relationship to a list of `Participant` records.
-    participants = sqlalchemy.orm.relationship(
-        argument="Participant",
-        secondary="milestone_participants",
-        back_populates="milestone"
     )
 
 
@@ -2190,14 +2267,12 @@ class Period(Base, OrmBase):
     milestones = sqlalchemy.orm.relationship(
         argument="Milestone",
         secondary="period_milestones",
-        back_populates="period"
     )
 
     # Relationship to a list of `DropWithdrawReason` records.
     drop_withdraw_reasons = sqlalchemy.orm.relationship(
         argument="DropWithdrawReason",
         secondary="period_drop_withdraw_reasons",
-        back_populates="period"
     )
 
 
@@ -2301,14 +2376,12 @@ class ParticipantFlow(Base, OrmBase):
     groups = sqlalchemy.orm.relationship(
         argument="Group",
         secondary="participant_flow_groups",
-        back_populates="participant_flow"
     )
 
     # Relationship to a list of `Period` records.
     periods = sqlalchemy.orm.relationship(
         argument="Period",
         secondary="participant_flow_periods",
-        back_populates="participant_flow"
     )
 
 
@@ -2403,21 +2476,18 @@ class Baseline(Base, OrmBase):
     groups = sqlalchemy.orm.relationship(
         argument="Group",
         secondary="baseline_groups",
-        back_populates="baseline"
     )
 
     # Relationship to a list of `MeasureAnalyzed` records.
     measure_analyzeds = sqlalchemy.orm.relationship(
         argument="MeasureAnalyzed",
         secondary="baseline_measure_analyzeds",
-        back_populates="baseline"
     )
 
     # Relationship to a list of `Measures` records.
     measures = sqlalchemy.orm.relationship(
         argument="Measure",
         secondary="baseline_measures",
-        back_populates="baseline"
     )
 
 
@@ -2604,7 +2674,6 @@ class Event(Base, OrmBase):
     counts = sqlalchemy.orm.relationship(
         argument="EventCount",
         secondary="event_event_counts",
-        back_populates="event"
     )
 
 
@@ -2666,7 +2735,6 @@ class EventCategory(Base, OrmBase):
     events = sqlalchemy.orm.relationship(
         argument="Event",
         secondary="event_category_events",
-        back_populates="event_category"
     )
 
 
@@ -2744,7 +2812,6 @@ class EventList(Base, OrmBase):
     event_categories = sqlalchemy.orm.relationship(
         argument="EventCategory",
         secondary="event_list_categories",
-        back_populates="event_list"
     )
 
 
@@ -2813,7 +2880,6 @@ class ReportedEvent(Base, OrmBase):
     groups = sqlalchemy.orm.relationship(
         argument="Group",
         secondary="reported_event_groups",
-        back_populates="event_reported"
     )
 
     # Foreign key to an event-list ID.
@@ -2833,13 +2899,13 @@ class ReportedEvent(Base, OrmBase):
     # Relationship to a `EventList` record for the 'serious events'.
     serious_event_list = sqlalchemy.orm.relationship(
         argument="EventList",
-        foreign_keys=["serious_event_list_id"]
+        foreign_keys=serious_event_list_id
     )
 
     # Relationship to a `EventList` record for the 'other events'.
     other_event_list = sqlalchemy.orm.relationship(
         argument="EventList",
-        foreign_keys=["other_event_list_id"]
+        foreign_keys=other_event_list_id
     )
 
 
@@ -3016,7 +3082,6 @@ class Study(Base, OrmBase):
     aliases = sqlalchemy.orm.relationship(
         argument="Alias",
         secondary="study_aliases",
-        back_populates="study"
     )
 
     # Referring to the value of the `<brief_title>` element.
@@ -3043,8 +3108,8 @@ class Study(Base, OrmBase):
     # Relationship to a list of `Sponsor` records.
     sponsors = sqlalchemy.orm.relationship(
         argument="Sponsor",
-        secondary="study_sponsor",
-        back_populates="studies"
+        secondary="study_sponsors",
+        back_populates="studies",
     )
 
     # Referring to the value of the `<source>` element.
@@ -3064,7 +3129,6 @@ class Study(Base, OrmBase):
     # Relationship to a list of `OversightInfo` records.
     oversight_info = sqlalchemy.orm.relationship(
         argument="OversightInfo",
-        back_populates="study"
     )
 
     # Referring to the value of the `<brief_summary>` element.
@@ -3093,7 +3157,7 @@ class Study(Base, OrmBase):
     last_known_status = sqlalchemy.Column(
         name="last_known_status",
         type_=sqlalchemy.types.Enum(OverallStatusType),
-        nullable=False,
+        nullable=True,
         index=True
     )
 
@@ -3160,7 +3224,6 @@ class Study(Base, OrmBase):
     # Relationship to a list of `ExpandedAccessInfo` records.
     expanded_info = sqlalchemy.orm.relationship(
         argument="ExpandedAccessInfo",
-        back_populates="study"
     )
 
     # Foreign key to the study-design-info ID.
@@ -3173,7 +3236,6 @@ class Study(Base, OrmBase):
     # Relationship to a list of `StudyDesignInfo` records.
     study_design_info = sqlalchemy.orm.relationship(
         argument="StudyDesignInfo",
-        back_populates="study"
     )
 
     # Referring to the value of the `<target_duration>` element.
@@ -3187,7 +3249,6 @@ class Study(Base, OrmBase):
     outcomes = sqlalchemy.orm.relationship(
         argument="ProtocolOutcome",
         secondary="study_outcomes",
-        back_populates="study"
     )
 
     # Foreign key to the enrollment ID.
@@ -3200,35 +3261,32 @@ class Study(Base, OrmBase):
     # Relationship to a list of `Enrollment` records.
     enrollment = sqlalchemy.orm.relationship(
         argument="Enrollment",
-        back_populates="study"
     )
 
     # Relationship to a list of `Condition` records.
     conditions = sqlalchemy.orm.relationship(
         argument="Condition",
         secondary="study_conditions",
-        back_populates="studies"
+        back_populates="studies",
     )
 
     # Relationship to a list of `ArmGroup` records.
     arm_groups = sqlalchemy.orm.relationship(
         argument="ArmGroup",
         secondary="study_arm_groups",
-        back_populates="study"
     )
 
     # Relationship to a list of `Intervention` records.
     interventions = sqlalchemy.orm.relationship(
         argument="Intervention",
         secondary="study_interventions",
-        back_populates="study"
     )
 
     # Referring to the value of the `<biospec_retention>` element.
     biospec_retention = sqlalchemy.Column(
         name="biospec_retention",
         type_=sqlalchemy.types.Enum(BiospecRetentionType),
-        nullable=False,
+        nullable=True,
         index=True
     )
 
@@ -3248,15 +3306,13 @@ class Study(Base, OrmBase):
 
     # Relationship to an `Elligibility` record.
     elligibility = sqlalchemy.orm.relationship(
-        argument="Elligibility",
-        back_populates="study"
+        argument="Eligibility",
     )
 
     # Relationship to a list of `Investigator` records.
     investigators = sqlalchemy.orm.relationship(
         argument="Investigator",
         secondary="study_investigators",
-        back_populates="studies"
     )
 
     # Foreign key to a contact ID of 'primary' type.
@@ -3269,8 +3325,7 @@ class Study(Base, OrmBase):
     # Relationship to a `Contact` record of 'primary' type.
     contact_primary = sqlalchemy.orm.relationship(
         argument="Contact",
-        back_populates="studies",
-        foreign_keys=["contact_primary_id"],
+        foreign_keys=contact_primary_id
     )
 
     # Foreign key to a contact ID of 'backup' type.
@@ -3283,15 +3338,13 @@ class Study(Base, OrmBase):
     # Relationship to a `Contact` record of 'backup' type.
     contact_backup = sqlalchemy.orm.relationship(
         argument="Contact",
-        back_populates="studies",
-        foreign_keys=["contact_backup_id"]
+        foreign_keys=contact_backup_id
     )
 
     # Relationship to a list of `Location` records.
     locations = sqlalchemy.orm.relationship(
         argument="Location",
         secondary="study_locations",
-        back_populates="studies"
     )
 
     # TODO: location_countries
@@ -3302,7 +3355,6 @@ class Study(Base, OrmBase):
     references = sqlalchemy.orm.relationship(
         argument="Reference",
         secondary="study_references",
-        back_populates="study"
     )
 
     # Foreign key to the study-dates ID.
@@ -3315,7 +3367,6 @@ class Study(Base, OrmBase):
     # Relationship to a list of `StudyDates` records.
     study_dates = sqlalchemy.orm.relationship(
         argument="StudyDates",
-        back_populates="study"
     )
 
     # Foreign key to a responsible-party ID.
@@ -3328,21 +3379,20 @@ class Study(Base, OrmBase):
     # Relationship to a `ResponsibleParty` record.
     responsible_party = sqlalchemy.orm.relationship(
         argument="ResponsibleParty",
-        back_populates="study",
     )
 
     # Relationship to a list of `Keyword` records.
     keywords = sqlalchemy.orm.relationship(
         argument="Keyword",
         secondary="study_keywords",
-        back_populates="studies"
+        back_populates="studies",
     )
 
     # Relationship to a list of `MeshTerm` records.
     mesh_terms = sqlalchemy.orm.relationship(
         argument="MeshTerm",
         secondary="study_mesh_terms",
-        back_populates="studies"
+        back_populates="studies",
     )
 
     # Foreign key to a patient-data ID.
@@ -3355,14 +3405,12 @@ class Study(Base, OrmBase):
     # Relationship to a `PatientData` record.
     patient_data = sqlalchemy.orm.relationship(
         argument="PatientData",
-        back_populates="study",
     )
 
     # Relationship to a list of `StudyDoc` records.
     study_docs = sqlalchemy.orm.relationship(
         argument="StudyDoc",
         secondary="study_study_docs",
-        back_populates="study"
     )
 
     # TODO: clinical_results
@@ -3427,6 +3475,14 @@ class StudySponsor(Base, OrmBase):
         sqlalchemy.ForeignKey("sponsors.sponsor_id"),
         name="sponsor_id",
         nullable=False,
+    )
+
+    # Sponsor type (defined by the name of the element of `<sponsor>` type.
+    sponsor_type = sqlalchemy.Column(
+        name="type",
+        type_=sqlalchemy.types.Enum(SponsorType),
+        nullable=False,
+        index=True
     )
 
     __table_args__ = (
