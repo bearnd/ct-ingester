@@ -17,9 +17,10 @@ class EnumBase(enum.Enum):
             value (str): The value of the member to match.
 
         Returns:
-            The matching member of `None` if `value` is undefined or no member
+            The matching member or `None` if `value` is undefined or no member
                 was found.
         """
+
         if not value:
             return None
 
