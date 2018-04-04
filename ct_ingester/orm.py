@@ -861,7 +861,7 @@ class ProtocolOutcome(Base, OrmBase):
     description = sqlalchemy.Column(
         name="description",
         type_=sqlalchemy.types.Unicode(),
-        nullable=False,
+        nullable=True,
     )
 
 
@@ -3319,7 +3319,7 @@ class Study(Base, OrmBase):
     contact_primary_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey("contacts.contact_id"),
         name="contact_primary_id",
-        nullable=False,
+        nullable=True,
     )
 
     # Relationship to a `Contact` record of 'primary' type.
@@ -3332,7 +3332,7 @@ class Study(Base, OrmBase):
     contact_backup_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey("contacts.contact_id"),
         name="contact_backup_id",
-        nullable=False,
+        nullable=True,
     )
 
     # Relationship to a `Contact` record of 'backup' type.
