@@ -57,7 +57,7 @@ class Sponsor(Base, OrmBase):
     agency_class = sqlalchemy.Column(
         name="class",
         type_=sqlalchemy.types.Enum(AgencyClassType),
-        nullable=True,
+        nullable=False,
         default=None,
         index=True
     )
@@ -621,6 +621,13 @@ class Location(Base, OrmBase):
     investigators = sqlalchemy.orm.relationship(
         argument="Investigator",
         secondary="location_investigators",
+    )
+
+    # Relationship to a list of `Studies` records.
+    studies = sqlalchemy.orm.relationship(
+        argument="Study",
+        secondary="study_locations",
+        back_populates="locations",
     )
 
     __table_args__ = (
@@ -2070,7 +2077,7 @@ class PatientData(Base, OrmBase):
     sharing_ipd = sqlalchemy.Column(
         name="sharing_ipd",
         type_=sqlalchemy.types.Unicode(),
-        nullable=True,
+        nullable=False,
     )
 
     # Referring to the value of the `<ipd_description>` element.
@@ -3116,14 +3123,14 @@ class Study(Base, OrmBase):
     source = sqlalchemy.Column(
         name="source",
         type_=sqlalchemy.types.Unicode(),
-        nullable=True,
+        nullable=False,
     )
 
     # Foreign key to the oversight-info ID.
     oversight_info_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey("oversight_infos.oversight_info_id"),
         name="oversight_info_id",
-        nullable=False,
+        nullable=True,
     )
 
     # Relationship to a list of `OversightInfo` records.
@@ -3301,7 +3308,7 @@ class Study(Base, OrmBase):
     eligibility_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey("eligibilities.eligibility_id"),
         name="eligibility_id",
-        nullable=False,
+        nullable=True,
     )
 
     # Relationship to an `Elligibility` record.
@@ -3345,6 +3352,7 @@ class Study(Base, OrmBase):
     locations = sqlalchemy.orm.relationship(
         argument="Location",
         secondary="study_locations",
+        back_populates="studies"
     )
 
     # TODO: location_countries
@@ -3373,7 +3381,7 @@ class Study(Base, OrmBase):
     responsible_party_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey("responsible_parties.responsible_party_id"),
         name="responsible_party_id",
-        nullable=False,
+        nullable=True,
     )
 
     # Relationship to a `ResponsibleParty` record.
