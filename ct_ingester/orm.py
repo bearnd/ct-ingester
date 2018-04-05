@@ -502,7 +502,7 @@ class Investigator(Base, OrmBase):
     role = sqlalchemy.Column(
         name="role",
         type_=sqlalchemy.types.Enum(RoleType),
-        nullable=False,
+        nullable=True,
         index=True
     )
 
