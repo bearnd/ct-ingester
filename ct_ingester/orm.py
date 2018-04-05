@@ -1981,7 +1981,7 @@ class ResponsibleParty(Base, OrmBase):
     responsible_party_type = sqlalchemy.Column(
         name="type",
         type_=sqlalchemy.types.Enum(ResponsiblePartyType),
-        nullable=False,
+        nullable=True,
     )
 
     # Referring to the value of the `<investigator_affiliation>` element.
