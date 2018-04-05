@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""The setup script."""
+
+from setuptools import setup, find_packages
+
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
@@ -17,7 +24,7 @@ test_requirements = [
 
 setup(
     name='ct_ingester',
-    version='0.1.3',
+    version='0.1.4',
     description="ClinicalTrials XML dump parser and SQL ingester.",
     long_description=readme + '\n\n' + history,
     author="Adamos Kyriakou",
