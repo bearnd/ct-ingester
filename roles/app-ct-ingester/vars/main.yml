@@ -1,0 +1,60 @@
+---
+
+# PostgreSQL Server Settings.
+postgresql_python_library: "python-psycopg2"
+
+# PostgreSQL Server Databases.
+postgresql_databases:
+  - name: "clinicaltrials"
+    port: 5432
+  - name: "test"
+    port: 5432
+# PostgreSQL Server Users.
+postgresql_users:
+  - name: "ct_ingester"
+    password: "zI7indC309irKG8S76BQnGScKo0fDpdPC84rroMA"
+    port: 5432
+
+app_ct_ingester:
+
+  # Application user settings.
+  user: ct_ingester
+  group: ct_ingester
+
+  # Application directories.
+  config_dir: /etc/ct-ingester
+  share_dir: /usr/local/share/ct-ingester
+  run_dir: /var/run/ct-ingester
+  log_dir: /var/log/ct-ingester
+  virtual_env_dir: /usr/local/share/ct-ingester/venvs/ct-ingester
+
+  # Gunicorn Configuration Settings.
+  gunicorn:
+    host: "127.0.0.1"
+    port: 5555
+    workers: 4
+    worker_class: sync
+
+  # Application Configuration Settings.
+  config:
+
+    dev:
+      # General Settings.
+      logger_level: DEBUG
+
+      # PostgreSQL Server Configuration Settings.
+      sql_host: "localhost"
+      sql_port: 5432
+      sql_username: "ct_ingester"
+      sql_password: "zI7indC309irKG8S76BQnGScKo0fDpdPC84rroMA"
+      sql_db: "clinicaltrials"
+    prod:
+      # General Settings.
+      logger_level: INFO
+
+      # PostgreSQL Server Configuration Settings.
+      sql_host: "localhost"
+      sql_port: 5432
+      sql_username: "ct_ingester"
+      sql_password: "zI7indC309irKG8S76BQnGScKo0fDpdPC84rroMA"
+      sql_db: "clinicaltrials"
