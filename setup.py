@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='ct_ingester',
-    version='0.1.3',
+    version='0.1.4',
     description="ClinicalTrials XML dump parser and SQL ingester.",
     long_description=readme + '\n\n' + history,
     author="Adamos Kyriakou",
