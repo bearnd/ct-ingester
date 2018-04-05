@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.1.3
+
+- `orm.py`: Updated the `ResponsibleParty` class and set the `responsible_party_type` to nullable as it is not defined in older records.
+
 ### v0.1.2
 
 - Added a new `scripts` package.
