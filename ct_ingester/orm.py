@@ -241,7 +241,7 @@ class Facility(Base, OrmBase):
     city = sqlalchemy.Column(
         name="city",
         type_=sqlalchemy.types.Unicode(),
-        nullable=False,
+        nullable=True,
     )
 
     # Facility state (referring to the `<city>` element under the `<address>`
@@ -265,7 +265,7 @@ class Facility(Base, OrmBase):
     country = sqlalchemy.Column(
         name="country",
         type_=sqlalchemy.types.Unicode(),
-        nullable=False,
+        nullable=True,
     )
 
     # MD5 hash of the author's full name.
