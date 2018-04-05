@@ -1,5 +1,10 @@
 ## Changelog
 
+### v0.1.5
+
+- `orm.py`: Updated the `Facility` class and set the `city` and `country` to nullable as the encompassing `<address>` element does not have to be defined under a `<facility>`.
+- Added Alembic migration file.
+
 ### v0.1.4
 
 - `orm.py`: Updated the `Investigator` class and set the `role` to nullable as it is not always defined.
