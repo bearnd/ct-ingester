@@ -3262,7 +3262,7 @@ class Study(Base, OrmBase):
     enrollment_id = sqlalchemy.Column(
         sqlalchemy.ForeignKey("enrollments.enrollment_id"),
         name="enrollment_id",
-        nullable=False,
+        nullable=True,
     )
 
     # Relationship to a list of `Enrollment` records.
