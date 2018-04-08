@@ -4,7 +4,7 @@ import abc
 from typing import Union
 
 from ct_ingester.loggers import create_logger
-from ct_ingester.dals import DalClinicalTrials
+from fform.dals_ct import DalClinicalTrials
 from ct_ingester.utils import log_ingestion_of_document
 
 

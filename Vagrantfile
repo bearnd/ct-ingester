@@ -32,7 +32,7 @@ Vagrant.configure("2") do |config|
     # provision with Ansible
     config.vm.provision :ansible do |ansible|
         ansible.playbook = "app-ct-ingester.yml"
-
+        ansible.host_key_checking = false
         if ENV['ANSIBLE_TAGS'] != ""
             ansible.tags = ENV['ANSIBLE_TAGS']
         end
