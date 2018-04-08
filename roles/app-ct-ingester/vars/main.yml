@@ -5,7 +5,7 @@ postgresql_python_library: "python-psycopg2"
 
 # PostgreSQL Server Databases.
 postgresql_databases:
-  - name: "clinicaltrials"
+  - name: "fightfor"
     port: 5432
   - name: "test"
     port: 5432
@@ -47,7 +47,7 @@ app_ct_ingester:
       sql_port: 5432
       sql_username: "ct_ingester"
       sql_password: "zI7indC309irKG8S76BQnGScKo0fDpdPC84rroMA"
-      sql_db: "clinicaltrials"
+      sql_db: "fightfor"
     prod:
       # General Settings.
       logger_level: INFO
@@ -57,4 +57,4 @@ app_ct_ingester:
       sql_port: 5432
       sql_username: "ct_ingester"
       sql_password: "zI7indC309irKG8S76BQnGScKo0fDpdPC84rroMA"
-      sql_db: "clinicaltrials"
+      sql_db: "fightfor"
