@@ -8,7 +8,7 @@ import argparse
 import fileinput
 
 from ct_ingester.parsers import ParserXmlClinicaStudy
-from ct_ingester.dals import DalClinicalTrials
+from fform.ct.dals import DalClinicalTrials
 from ct_ingester.ingesters import IngesterDocumentClinicalTrial
 from ct_ingester.config import import_config
 

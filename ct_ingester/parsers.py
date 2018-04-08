@@ -9,23 +9,23 @@ from lxml import etree
 
 from ct_ingester.loggers import create_logger
 from ct_ingester.parser_utils import parse_date_pattern
-from ct_ingester.orm_enums import SponsorType
-from ct_ingester.orm_enums import YesNoType
-from ct_ingester.orm_enums import OverallStatusType
-from ct_ingester.orm_enums import ActualType
-from ct_ingester.orm_enums import PhaseType
-from ct_ingester.orm_enums import StudyType
-from ct_ingester.orm_enums import OutcomeType
-from ct_ingester.orm_enums import InterventionType
-from ct_ingester.orm_enums import BiospecRetentionType
-from ct_ingester.orm_enums import SamplingMethodType
-from ct_ingester.orm_enums import GenderType
-from ct_ingester.orm_enums import RoleType
-from ct_ingester.orm_enums import RecruitmentStatusType
-from ct_ingester.orm_enums import ReferenceType
-from ct_ingester.orm_enums import ResponsiblePartyType
-from ct_ingester.orm_enums import MeshTermType
-from ct_ingester.orm_enums import AgencyClassType
+from fform.ct.orm_enums import SponsorType
+from fform.ct.orm_enums import YesNoType
+from fform.ct.orm_enums import OverallStatusType
+from fform.ct.orm_enums import ActualType
+from fform.ct.orm_enums import PhaseType
+from fform.ct.orm_enums import StudyType
+from fform.ct.orm_enums import OutcomeType
+from fform.ct.orm_enums import InterventionType
+from fform.ct.orm_enums import BiospecRetentionType
+from fform.ct.orm_enums import SamplingMethodType
+from fform.ct.orm_enums import GenderType
+from fform.ct.orm_enums import RoleType
+from fform.ct.orm_enums import RecruitmentStatusType
+from fform.ct.orm_enums import ReferenceType
+from fform.ct.orm_enums import ResponsiblePartyType
+from fform.ct.orm_enums import MeshTermType
+from fform.ct.orm_enums import AgencyClassType
 
 
 class ParserXmlBase(object):
