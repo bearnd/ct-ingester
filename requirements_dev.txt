@@ -15,4 +15,5 @@ coverage==4.1
 pytest==2.9.2
 pytest-runner==2.11.1
 lxml==3.8.0
-git+ssh://git@sunny.diskstation.me:30001/bearnd/fightfor-orm.git@develop#egg=fform
+git+http://gitlab-ci-token:YGVQHuviVKnqbJ1SyAXd@sunny.diskstation.me:30000/bearnd/fightfor-orm.git#egg=fform
+
