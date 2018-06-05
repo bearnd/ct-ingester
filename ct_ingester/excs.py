@@ -6,8 +6,6 @@ This module contains custom exception classes that can be used to wrap other
 exception and allow for consistent error-handling across the application.
 """
 
-from __future__ import unicode_literals
-
 
 class UnhandledError(Exception):
     def __init__(self, message, *args):
