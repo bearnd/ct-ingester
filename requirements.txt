@@ -11,6 +11,6 @@ decorator==4.1.2
 psycopg2==2.7.3.2
 SQLAlchemy==1.2.6
 chardet==3.0.4
-lxml==3.8.0
+lxml==4.2.1
 dateparser==0.7.0
 git+http://gitlab-ci-token:YGVQHuviVKnqbJ1SyAXd@sunny.diskstation.me:30000/bearnd/fightfor-orm.git#egg=fform
