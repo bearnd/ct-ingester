@@ -48,13 +48,13 @@ def main(args):
 if __name__ == "__main__":
 
     argument_parser = argparse.ArgumentParser(
-        description=("pubmed-ingester: Pubmed XML dump parser and SQL"
-                     " ingester.")
+        description=("ct-ingester: ClinicalTrials.gov XML dump parser and SQL "
+                     "ingester.")
     )
     argument_parser.add_argument(
         "filenames",
         nargs="+",
-        help="Pubmed XML files to ingest.",
+        help="ClinicalTrials.gov XML files to ingest.",
     )
     argument_parser.add_argument(
         "--config-file",
