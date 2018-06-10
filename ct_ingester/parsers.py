@@ -75,7 +75,6 @@ class ParserXmlBase(object):
             tag=element_tag
         )
 
-        _, element_root = next(document)
         start_tag = None
         for event, element in document:
             if event == 'start' and start_tag is None:
@@ -83,7 +82,7 @@ class ParserXmlBase(object):
             if event == 'end' and element.tag == start_tag:
                 yield element
                 start_tag = None
-                element_root.clear()
+                element.clear()
 
     def open_xml_file(self, filename_xml):
 
