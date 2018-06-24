@@ -256,7 +256,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         contact_backup_id = self.ingest_contact(doc.get("contact_backup"))
 
-        obj_id = self.dal.iodi_location(
+        obj_id = self.dal.iodu_location(
             facility_id=facility_id,
             status=doc.get("status"),
             contact_primary_id=contact_primary_id,
@@ -551,7 +551,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_reference(
+        obj_id = self.dal.iodu_reference(
             citation=doc.get("citation"),
             pmid=doc.get("pmid"),
         )
@@ -822,7 +822,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Create the `PatientData` record and hold on to its primary-key ID.
         patient_data_id = self.ingest_patient_data(doc.get("patient_data"))
 
-        obj_id = self.dal.iodi_study(
+        obj_id = self.dal.iodu_study(
             org_study_id=id_info.get("org_study_id"),
             secondary_id=secondary_id,
             nct_id=id_info.get("nct_id"),
@@ -867,7 +867,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Create `Sponsor` and `StudySponsor` records.
         for sponsor in doc.get("sponsors", []):
             sponsor_id = self.ingest_sponsor(sponsor)
-            self.dal.iodi_study_sponsor(
+            self.dal.iodu_study_sponsor(
                 study_id=obj_id,
                 sponsor_id=sponsor_id,
                 sponsor_type=sponsor.get("type"),
@@ -876,7 +876,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Create `ProtocolOutcome` and `StudyOutcome` records.
         for protocol_outcome in doc.get("protocol_outcomes", []):
             protocol_outcome_id = self.ingest_protocol_outcome(protocol_outcome)
-            self.dal.iodi_study_outcome(
+            self.dal.iodu_study_outcome(
                 study_id=obj_id,
                 protocol_outcome_id=protocol_outcome_id,
                 outcome_type=protocol_outcome.get("type"),
@@ -931,7 +931,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Create `Reference` and `StudyReference` records.
         for reference in doc.get("references", []):
             reference_id = self.ingest_reference(reference)
-            self.dal.iodi_study_reference(
+            self.dal.iodu_study_reference(
                 study_id=obj_id,
                 reference_id=reference_id,
                 reference_type=reference.get("type"),
@@ -948,7 +948,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Create `MeshTerm` and `StudyMeshTerm` records.
         for mesh_term in doc.get("mesh_terms", []):
             mesh_term_id = self.ingest_mesh_term(mesh_term)
-            self.dal.iodi_study_mesh_term(
+            self.dal.iodu_study_mesh_term(
                 study_id=obj_id,
                 mesh_term_id=mesh_term_id,
                 mesh_term_type=mesh_term.get("type")
