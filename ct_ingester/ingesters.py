@@ -1,10 +1,27 @@
 # -*- coding: utf-8 -*-
 
 import abc
-from typing import Union
+from typing import Union, List, Type
+
+from fform.orm_ct import OrmBase
+from fform.orm_ct import Study
+from fform.orm_ct import OversightInfo
+from fform.orm_ct import ExpandedAccessInfo
+from fform.orm_ct import StudyDesignInfo
+from fform.orm_ct import Enrollment
+from fform.orm_ct import Eligibility
+from fform.orm_ct import StudyDates
+from fform.orm_ct import ResponsibleParty
+from fform.orm_ct import PatientData
+from fform.orm_ct import ProtocolOutcome
+from fform.orm_ct import StudyOutcome
+from fform.orm_ct import ArmGroup
+from fform.orm_ct import StudyArmGroup
+from fform.orm_ct import StudyDoc
+from fform.orm_ct import StudyStudyDoc
+from fform.dals_ct import DalClinicalTrials
 
 from ct_ingester.loggers import create_logger
-from fform.dals_ct import DalClinicalTrials
 from ct_ingester.utils import log_ingestion_of_document
 
 
@@ -310,6 +327,44 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
+    def update_study_fk(
+        self,
+        study: Study,
+        fk_name: str,
+        orm_class: Type[OrmBase],
+        id_old: int,
+        id_new: int,
+    ):
+        """Updates the value of a foreign-key attribute of a `Study` record
+        and deletes the record of `orm_class` type the `Study` used to link
+        to."""
+
+        if study and getattr(study, fk_name):
+            msg = ("Updating foreign-key `{}` of `Study` record with ID '{}' "
+                   "from value '{}' to '{}' and deleting old record of type "
+                   "'{}'.")
+            msg_fmt = msg.format(
+                fk_name,
+                study.study_id,
+                id_old,
+                id_new,
+                orm_class.__name__,
+            )
+            self.logger.debug(msg_fmt)
+
+            # Update the foreign-key value.
+            self.dal.update_attr_value(
+                orm_class=Study,
+                pk=study.study_id,
+                attr_name=fk_name,
+                attr_value=id_new,
+            )
+            # Update the old linked record.
+            self.dal.delete(
+                orm_class=orm_class,
+                pk=id_old,
+            )
+
     @log_ingestion_of_document(document_name="expanded_access_info")
     def ingest_expanded_access_info(
         self,
@@ -377,6 +432,55 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
+    def delete_existing_protocol_outcomes(
+        self,
+        study: Study,
+    ) -> None:
+        """Deletes the existing `ProtocolOutcome` and `StudyOutcome` records
+        associated with the currently ingested study.
+
+        Args:
+            study (Study): The existing `Study` record object for which the
+                `ProtocolOutcome` and `StudyOutcome` records will be deleted.
+        """
+
+        if not study:
+            return None
+
+        # Collect all `StudyOutcome` objects linked to the given `Study` record.
+        study_outcomes = self.dal.bget_by_attr(
+            orm_class=StudyOutcome,
+            attr_name="study_id",
+            attr_values=[study.study_id],
+            do_sort=False,
+        )  # type: List[StudyOutcome]
+
+        # Collect all `ProtocolOutcome` IDs.
+        protocol_outcome_ids = [
+            study_outcome.protocol_outcome_id
+            for study_outcome in study_outcomes
+        ]
+
+        # Delete all related `ProtocolOutcome` records.
+        for protocol_outcome_id in protocol_outcome_ids:
+            self.dal.delete(
+                orm_class=ProtocolOutcome,
+                pk=protocol_outcome_id
+            )
+
+        # Collect all `StudyOutcome` IDs.
+        study_outcome_ids = [
+            study_outcome.study_primary_outcome_id
+            for study_outcome in study_outcomes
+        ]
+
+        # Delete all related `StudyOutcome` records.
+        for study_outcome_id in study_outcome_ids:
+            self.dal.delete(
+                orm_class=StudyOutcome,
+                pk=study_outcome_id
+            )
+
     @log_ingestion_of_document(document_name="protocol_outcome")
     def ingest_protocol_outcome(
         self,
@@ -399,33 +503,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         obj_id = self.dal.iodi_protocol_outcome(
             measure=doc.get("measure"),
             time_frame=doc.get("time_frame"),
-            description=doc.get("description"),
-        )
-
-        return obj_id
-
-    @log_ingestion_of_document(document_name="group")
-    def ingest_group(
-        self,
-        doc: dict,
-    ) -> Union[int, None]:
-        """Ingests a parsed element of type `<group_struct>` and creates a
-        `Group` record.
-
-        Args:
-            doc (dict): The element of type `<group_struct>` parsed into a
-                dictionary.
-
-        Returns:
-             int: The primary-key ID of the `Group` record.
-        """
-
-        if not doc:
-            return None
-
-        obj_id = self.dal.iodi_protocol_outcome(
-            identifier=doc.get("identifier"),
-            title=doc.get("title"),
             description=doc.get("description"),
         )
 
@@ -689,6 +766,56 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
+    def delete_existing_study_docs(
+        self,
+        study: Study,
+    ) -> None:
+        """Deletes the existing `StudyDoc` and `StudyStudyDoc` records
+        associated with the currently ingested study.
+
+        Args:
+            study (Study): The existing `Study` record object for which the
+                `StudyDoc` and `StudyStudyDoc` records will be deleted.
+        """
+
+        if not study:
+            return None
+
+        # Collect all `StudyStudyDoc` objects linked to the given `Study`
+        # record.
+        study_study_docs = self.dal.bget_by_attr(
+            orm_class=StudyStudyDoc,
+            attr_name="study_id",
+            attr_values=[study.study_id],
+            do_sort=False,
+        )  # type: List[StudyStudyDoc]
+
+        # Collect all `StudyDoc` IDs.
+        study_doc_ids = [
+            study_study_doc.study_doc_id
+            for study_study_doc in study_study_docs
+        ]
+
+        # Delete all related `StudyDoc` records.
+        for study_doc_id in study_doc_ids:
+            self.dal.delete(
+                orm_class=StudyDoc,
+                pk=study_doc_id,
+            )
+
+        # Collect all `StudyStudyDoc` IDs.
+        study_study_doc_ids = [
+            study_study_doc.study_study_doc_id
+            for study_study_doc in study_study_docs
+        ]
+
+        # Delete all related `StudyStudyDoc` records.
+        for study_study_doc_id in study_study_doc_ids:
+            self.dal.delete(
+                orm_class=StudyStudyDoc,
+                pk=study_study_doc_id
+            )
+
     @log_ingestion_of_document(document_name="study_doc")
     def ingest_study_doc(
         self,
@@ -873,6 +1000,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 sponsor_type=sponsor.get("type"),
             )
 
+        # Delete the existing `ProtocolOutcome` and `StudyOutcome` records (if
+        # they exist).
+        self.delete_existing_protocol_outcomes(study=study)
         # Create `ProtocolOutcome` and `StudyOutcome` records.
         for protocol_outcome in doc.get("protocol_outcomes", []):
             protocol_outcome_id = self.ingest_protocol_outcome(protocol_outcome)
@@ -890,6 +1020,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 condition_id=condition_id,
             )
 
+        # Delete the existing `ArmGroup` and `StudyArmGroup` records (if they
+        # exist).
+        self.delete_existing_arm_groups(study=study)
         # Create `ArmGroup` and `StudyArmGroup` records.
         arm_group_labels_ids = {}
         for arm_group in doc.get("arm_groups", []):
@@ -954,6 +1087,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 mesh_term_type=mesh_term.get("type")
             )
 
+        # Delete the existing `StudyDoc` and `StudyStudyDoc` records (if they
+        # exist).
+        self.delete_existing_study_docs(study=study)
         # Create `StudyDoc` and `StudyStudyDoc` records.
         for study_doc in doc.get("study_docs", []):
             study_doc_id = self.ingest_study_doc(study_doc)
