@@ -534,6 +534,56 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
+    def delete_existing_arm_groups(
+        self,
+        study: Study,
+    ) -> None:
+        """Deletes the existing `ArmGroup` and `StudyArmGroup` records
+        associated with the currently ingested study.
+
+        Args:
+            study (Study): The existing `Study` record object for which the
+                `ArmGroup` and `StudyArmGroup` records will be deleted.
+        """
+
+        if not study:
+            return None
+
+        # Collect all `StudyArmGroup` objects linked to the given `Study`
+        # record.
+        study_arm_groups = self.dal.bget_by_attr(
+            orm_class=StudyArmGroup,
+            attr_name="study_id",
+            attr_values=[study.study_id],
+            do_sort=False,
+        )  # type: List[StudyArmGroup]
+
+        # Collect all `ArmGroup` IDs.
+        arm_group_ids = [
+            study_arm_group.arm_group_id
+            for study_arm_group in study_arm_groups
+        ]
+
+        # Delete all related `ArmGroup` records.
+        for arm_group_id in arm_group_ids:
+            self.dal.delete(
+                orm_class=ArmGroup,
+                pk=arm_group_id,
+            )
+
+        # Collect all `StudyArmGroup` IDs.
+        study_arm_group_ids = [
+            study_arm_group.study_arm_group_id
+            for study_arm_group in study_arm_groups
+        ]
+
+        # Delete all related `StudyArmGroup` records.
+        for study_arm_group_id in study_arm_group_ids:
+            self.dal.delete(
+                orm_class=StudyArmGroup,
+                pk=study_arm_group_id
+            )
+
     @log_ingestion_of_document(document_name="arm_group")
     def ingest_arm_group(
         self,
