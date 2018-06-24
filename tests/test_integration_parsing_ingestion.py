@@ -69,6 +69,3 @@ class TestIntegrationParsingIngestion(TestBase):
         for _ in range(3):
             obj_id = self.ingester.ingest(doc=clinical_study)
             self.assertEqual(obj_id, 1)
-
-        from IPython import embed
-        embed()
