@@ -9,23 +9,23 @@ from lxml import etree
 
 from ct_ingester.loggers import create_logger
 from ct_ingester.parser_utils import parse_date_pattern
-from fform.orm_enums import SponsorType
-from fform.orm_enums import YesNoType
-from fform.orm_enums import OverallStatusType
-from fform.orm_enums import ActualType
-from fform.orm_enums import PhaseType
-from fform.orm_enums import StudyType
-from fform.orm_enums import OutcomeType
-from fform.orm_enums import InterventionType
-from fform.orm_enums import BiospecRetentionType
-from fform.orm_enums import SamplingMethodType
-from fform.orm_enums import GenderType
-from fform.orm_enums import RoleType
-from fform.orm_enums import RecruitmentStatusType
-from fform.orm_enums import ReferenceType
-from fform.orm_enums import ResponsiblePartyType
-from fform.orm_enums import MeshTermType
-from fform.orm_enums import AgencyClassType
+from fform.orm_ct import SponsorType
+from fform.orm_ct import YesNoType
+from fform.orm_ct import OverallStatusType
+from fform.orm_ct import ActualType
+from fform.orm_ct import PhaseType
+from fform.orm_ct import StudyType
+from fform.orm_ct import OutcomeType
+from fform.orm_ct import InterventionType
+from fform.orm_ct import BiospecRetentionType
+from fform.orm_ct import SamplingMethodType
+from fform.orm_ct import GenderType
+from fform.orm_ct import RoleType
+from fform.orm_ct import RecruitmentStatusType
+from fform.orm_ct import ReferenceType
+from fform.orm_ct import ResponsiblePartyType
+from fform.orm_ct import MeshTermType
+from fform.orm_ct import AgencyClassType
 
 
 class ParserXmlBase(object):
