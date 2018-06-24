@@ -1,60 +1,33 @@
 # coding=utf-8
 
-import unittest
-
 from lxml import etree
-from fform.dals_ct import DalClinicalTrials
-from fform.orm_base import Base
 
-from ct_ingester.ingesters import IngesterDocumentClinicalTrial
-from ct_ingester.parsers import ParserXmlClinicaStudy
-from ct_ingester.config import import_config
-
+from tests.bases import TestBase
 from tests.assets.NCT00000102 import document as doc_nct00000102
 from tests.assets.NCT00000112 import document as doc_nct00000112
 
 
-class DalTestBase(unittest.TestCase):
+class TestIntegrationParsingIngestion(TestBase):
+    """Full integration tests including parsing and ingestion."""
 
-    def setUp(self):
-        """Instantiates the DAL and creates the schema."""
-
-        # Load the configuration.
-        self.cfg = import_config(
-            fname_config_file="/etc/ct-ingester/ct-ingester.json",
-        )
-
-        self.dal = DalClinicalTrials(
-            sql_username=self.cfg.sql_username,
-            sql_password=self.cfg.sql_password,
-            sql_host=self.cfg.sql_host,
-            sql_port=self.cfg.sql_port,
-            sql_db=self.cfg.sql_db
-        )
-
-        self.ingester = IngesterDocumentClinicalTrial(dal=self.dal)
-
-        self.parser = ParserXmlClinicaStudy()
-
-        # Drop any schema remnants and recreate it.
-        Base.metadata.drop_all(self.dal.engine)
-        Base.metadata.create_all(self.dal.engine)
-
-    def tearDown(self):
-        """Drops the DB schema created during setup."""
-
-        Base.metadata.drop_all(self.dal.engine)
-
-    def test_integration_ingest_nct00000102(self):
-        """Tests the `ingest` method of the `IngesterDocumentClinicalTrial`
-        class by ingesting a the NCT00000102 clinical-trial XML document
-        asserting that parsing and ingestion were successful."""
+    def _parse_sample(self, sample):
+        """Parses a clinical-trial XML document and returns the parsed
+        document."""
 
         # Perform an XML parsing of the document.
-        element = etree.fromstring(text=doc_nct00000102)
+        element = etree.fromstring(text=sample)
 
         # Parse the clinical-trial XML element.
         clinical_study = self.parser.parse_clinical_study(element=element)
+
+        return clinical_study
+
+    def test_integration_ingest_nct00000102(self):
+        """Tests the `ingest` method of the `IngesterDocumentClinicalTrial`
+        class by ingesting the NCT00000102 clinical-trial XML document
+        asserting that parsing and ingestion were successful."""
+
+        clinical_study = self._parse_sample(sample=doc_nct00000102)
 
         # Ingest the parsed clinical-trial document.
         obj_id = self.ingester.ingest(doc=clinical_study)
@@ -63,16 +36,39 @@ class DalTestBase(unittest.TestCase):
 
     def test_integration_ingest_doc_nct00000112(self):
         """Tests the `ingest` method of the `IngesterDocumentClinicalTrial`
-        class by ingesting a the NCT00000112 clinical-trial XML document
+        class by ingesting the NCT00000112 clinical-trial XML document
         asserting that parsing and ingestion were successful."""
 
-        # Perform an XML parsing of the document.
-        element = etree.fromstring(text=doc_nct00000112)
-
-        # Parse the clinical-trial XML element.
-        clinical_study = self.parser.parse_clinical_study(element=element)
+        clinical_study = self._parse_sample(sample=doc_nct00000112)
 
         # Ingest the parsed clinical-trial document.
         obj_id = self.ingester.ingest(doc=clinical_study)
 
         self.assertEqual(obj_id, 1)
+
+    def test_integration_ingest_nct00000102_multiple(self):
+        """Tests the `ingest` method of the `IngesterDocumentClinicalTrial`
+        class by ingesting the NCT00000102 clinical-trial XML document
+        multiple times."""
+
+        clinical_study = self._parse_sample(sample=doc_nct00000102)
+
+        # Ingest the parsed clinical-trial document 3 times.
+        for _ in range(3):
+            obj_id = self.ingester.ingest(doc=clinical_study)
+            self.assertEqual(obj_id, 1)
+
+    def test_integration_ingest_nct00000112_multiple(self):
+        """Tests the `ingest` method of the `IngesterDocumentClinicalTrial`
+        class by ingesting the NCT00000112 clinical-trial XML document
+        multiple times."""
+
+        clinical_study = self._parse_sample(sample=doc_nct00000112)
+
+        # Ingest the parsed clinical-trial document 3 times.
+        for _ in range(3):
+            obj_id = self.ingester.ingest(doc=clinical_study)
+            self.assertEqual(obj_id, 1)
+
+        from IPython import embed
+        embed()
