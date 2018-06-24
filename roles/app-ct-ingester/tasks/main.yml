@@ -139,7 +139,7 @@
   pip:
     chdir: "{{ app_ct_ingester.share_dir }}/src/"
     requirements: requirements.txt
-    state: present
+    state: latest
     virtualenv: "{{ app_ct_ingester.virtual_env_dir }}"
     virtualenv_python: python2.7
   when: app_ct_ingester.is_vagrant is not defined or app_ct_ingester.is_vagrant == False
@@ -150,7 +150,7 @@
   pip:
     chdir: "/home/vagrant/ct-ingester"
     requirements: requirements_dev.txt
-    state: present
+    state: latest
     virtualenv: "{{ app_ct_ingester.virtual_env_dir }}"
     virtualenv_python: python2.7
   when: app_ct_ingester.is_vagrant is defined and app_ct_ingester.is_vagrant == True
