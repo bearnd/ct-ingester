@@ -949,6 +949,17 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Retrieve the `id_info` object.
         id_info = doc.get("id_info", {})
 
+        # Retrieve the NCT ID of the study.
+        nct_id = id_info.get("nct_id")
+
+        # Check for the existence of a study with the same NCT ID and retrieve
+        # it if it does exist.
+        study = self.dal.get_by_attr(
+            orm_class=Study,
+            attr_name="nct_id",
+            attr_value=nct_id,
+        )
+
         # Retrieve the first secondary ID if defined.
         secondary_ids = id_info.get("secondary_ids", [])
         if secondary_ids:
@@ -960,24 +971,74 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         oversight_info_id = self.ingest_oversight_info(
             doc.get("oversight_info"),
         )
+        # Update the `oversight_info_id` of the existing `Study` record
+        # (if defined) and delete the old `OversightInfo` record.
+        if study and study.oversight_info_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="oversight_info_id",
+                orm_class=OversightInfo,
+                id_old=study.oversight_info_id,
+                id_new=oversight_info_id,
+            )
 
         # Create the `ExpandedAccessInfo` record and hold on to its primary-key
         # ID.
         expanded_access_info_id = self.ingest_expanded_access_info(
             doc.get("expanded_access_info"),
         )
+        # Update the `expanded_access_info_id` of the existing `Study` record
+        # (if defined) and delete the old `ExpandedAccessInfo` record.
+        if study and study.expanded_access_info_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="expanded_access_info_id",
+                orm_class=ExpandedAccessInfo,
+                id_old=study.expanded_access_info_id,
+                id_new=expanded_access_info_id,
+            )
 
         # Create the `StudyDesignInfo` record and hold on to its primary-key
         # ID.
         study_design_info_id = self.ingest_study_design_info(
             doc.get("study_design_info"),
         )
+        # Update the `study_design_info_id` of the existing `Study` record (if
+        # defined) and delete the old `StudyDesignInfo` record.
+        if study and study.study_design_info_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="study_design_info_id",
+                orm_class=StudyDesignInfo,
+                id_old=study.study_design_info_id,
+                id_new=study_design_info_id,
+            )
 
         # Create the `Enrollment` record and hold on to its primary-key ID.
         enrollment_id = self.ingest_enrollment(doc.get("enrollment"))
+        # Update the `enrollment_id` of the existing `Study` record (if defined)
+        # and delete the old `StudyDesignInfo` record.
+        if study and study.enrollment_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="enrollment_id",
+                orm_class=Enrollment,
+                id_old=study.enrollment_id,
+                id_new=enrollment_id,
+            )
 
         # Create the `Eligibility` record and hold on to its primary-key ID.
         eligibility_id = self.ingest_eligibility(doc.get("eligibility"))
+        # Update the `eligibility_id` of the existing `Study` record (if
+        # defined) and delete the old `Eligibility` record.
+        if study and study.eligibility_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="eligibility_id",
+                orm_class=Eligibility,
+                id_old=study.eligibility_id,
+                id_new=eligibility_id,
+            )
 
         # Create the primary `Contact` record and hold on to its primary-key ID.
         contact_primary_id = self.ingest_contact(doc.get("overall_contact"))
@@ -989,15 +1050,45 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         # Create the `StudyDates` record and hold on to its primary-key ID.
         study_dates_id = self.ingest_study_dates(doc.get("study_dates"))
+        # Update the `study_dates_id` of the existing `Study` record (if
+        # defined) and delete the old `StudyDates` record.
+        if study and study.study_dates_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="study_dates_id",
+                orm_class=StudyDates,
+                id_old=study.study_dates_id,
+                id_new=study_dates_id,
+            )
 
         # Create the `ResponsibleParty` record and hold on to its primary-key
         # ID.
         responsible_party_id = self.ingest_responsible_party(
             doc.get("responsible_party")
         )
+        # Update the `responsible_party_id` of the existing `Study` record (if
+        # defined) and delete the old `ResponsibleParty` record.
+        if study and study.responsible_party_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="responsible_party_id",
+                orm_class=ResponsibleParty,
+                id_old=study.responsible_party_id,
+                id_new=responsible_party_id,
+            )
 
         # Create the `PatientData` record and hold on to its primary-key ID.
         patient_data_id = self.ingest_patient_data(doc.get("patient_data"))
+        # Update the `patient_data_id` of the existing `Study` record (if
+        # defined) and delete the old `PatientData` record.
+        if study and study.patient_data_id:
+            self.update_study_fk(
+                study=study,
+                fk_name="patient_data_id",
+                orm_class=PatientData,
+                id_old=study.patient_data_id,
+                id_new=patient_data_id,
+            )
 
         obj_id = self.dal.iodu_study(
             org_study_id=id_info.get("org_study_id"),
