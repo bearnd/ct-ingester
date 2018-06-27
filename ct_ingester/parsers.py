@@ -9,23 +9,23 @@ from lxml import etree
 
 from ct_ingester.loggers import create_logger
 from ct_ingester.parser_utils import parse_date_pattern
-from ct_ingester.orm_enums import SponsorType
-from ct_ingester.orm_enums import YesNoType
-from ct_ingester.orm_enums import OverallStatusType
-from ct_ingester.orm_enums import ActualType
-from ct_ingester.orm_enums import PhaseType
-from ct_ingester.orm_enums import StudyType
-from ct_ingester.orm_enums import OutcomeType
-from ct_ingester.orm_enums import InterventionType
-from ct_ingester.orm_enums import BiospecRetentionType
-from ct_ingester.orm_enums import SamplingMethodType
-from ct_ingester.orm_enums import GenderType
-from ct_ingester.orm_enums import RoleType
-from ct_ingester.orm_enums import RecruitmentStatusType
-from ct_ingester.orm_enums import ReferenceType
-from ct_ingester.orm_enums import ResponsiblePartyType
-from ct_ingester.orm_enums import MeshTermType
-from ct_ingester.orm_enums import AgencyClassType
+from fform.orm_ct import SponsorType
+from fform.orm_ct import YesNoType
+from fform.orm_ct import OverallStatusType
+from fform.orm_ct import ActualType
+from fform.orm_ct import PhaseType
+from fform.orm_ct import StudyType
+from fform.orm_ct import OutcomeType
+from fform.orm_ct import InterventionType
+from fform.orm_ct import BiospecRetentionType
+from fform.orm_ct import SamplingMethodType
+from fform.orm_ct import GenderType
+from fform.orm_ct import RoleType
+from fform.orm_ct import RecruitmentStatusType
+from fform.orm_ct import ReferenceType
+from fform.orm_ct import ResponsiblePartyType
+from fform.orm_ct import MeshTermType
+from fform.orm_ct import AgencyClassType
 
 
 class ParserXmlBase(object):
@@ -75,7 +75,6 @@ class ParserXmlBase(object):
             tag=element_tag
         )
 
-        _, element_root = next(document)
         start_tag = None
         for event, element in document:
             if event == 'start' and start_tag is None:
@@ -83,7 +82,7 @@ class ParserXmlBase(object):
             if event == 'end' and element.tag == start_tag:
                 yield element
                 start_tag = None
-                element_root.clear()
+                element.clear()
 
     def open_xml_file(self, filename_xml):
 

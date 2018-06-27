@@ -64,3 +64,4 @@ target/
 # Ansible .retry files.
 *.retry
 *.xml
+/.ansible-vault-password
