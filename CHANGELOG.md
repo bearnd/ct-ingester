@@ -1,5 +1,45 @@
 ## Changelog
 
+### v0.2.0
+
+Port ORM and DAL to `fightfor-orm`:
+- Ported all ORM and DAL modules and classes to the `fightfor-orm` project.
+- Changed the `fform` imports to fit the updated package.
+- Updated the `fightfor-orm` dependency entry to use a Gitlab token.
+- Fixed bugs in the Ansible tasks.
+- Renamed the database name to `fightfor`.
+- `env.py`: Updated the `run_migrations_online` function to account for the schema name.
+- Replaced the multiple Alembic migration files with a new one in order to account for the schema name.
+- Ansible related configuration changes.
+
+Issue No.3: Add ansible-vault secret-management to Ansible roles:
+- Updated Python dependencies.
+- Updated the Ansible variables with the encrypted versions of the SQL DB passwords instead of plain-text ones.
+- `Vagrantfile`: Updated the Ansible provisioning settings to use the Ansible Vault password.
+- Added an ignore for the `.ansible-vault-password` file.
+- `Vagrantfile`: Fixed bug.
+- `README.md`: Added instructions regarding Ansible Vault.
+- Updated Python dependencies.
+
+Issue No.16: Iterative XML element parsing skips first element:
+- `parsers.py`: Fixed bug in the iterative XML element parsing in the `generate_xml_elements` method of the `ParserXmlBase` class where the first element was always skipped.
+- Fixed issue with Ansible Vault variables.
+- Removed the Alembic configuration and revisions as this functionality was ported to `fightfor-alembic`.
+
+Issue No.2: Improper unique-ing and study-updates:
+- Updated Python dependencies.
+- Updated Ansible role to install the latest version of Python dependencies so that the latest version of `fform` will be installed. The rest of the dependencies will still behave the same as they’re pinned.
+- `excs.py`: Removed unused exception classes.
+- `parsers.py`: Fixed bugs in the imports.
+- `ingesters.py`: Replaced IODI calls with IODU calls to relfect the latest version of `fightfor-orm`.
+- `ingesters.py`: Updated the `IngesterDocumentClinicalTrial` class and added new methods to delete records linked to a `Study` record via association tables as well as the association records themselves when the linked records cannot be uniquely identified and would cause duplication if re-inserted. These methods are now called during the ingestion points of those records in the `ingest` method.
+- `ingesters.py`: Updated the `IngesterDocumentClinicalTrial` class and added a `update_study_fk` which updates a foreign-key attribute in a `Study` record linked a record that cannot be uniquely identified. Once the FK is updated the old record is deleted. Calls to this method have been added in the `ingest` method.
+- Removed unit-test placeholder module.
+- Added a new `tests/bases.py` module with a unit-test base-class.
+- Added unit-test asset modules.
+- Added a new `tests/test_parsers.py` module with unit-tests for the `ParserXmlBase` class.
+- Added basic integration tests testing the parsing and ingestion of entire clinical-study XML documents.
+
 ### v0.1.5
 
 - `orm.py`: Updated the `Facility` class and set the `city` and `country` to nullable as the encompassing `<address>` element does not have to be defined under a `<facility>`.
