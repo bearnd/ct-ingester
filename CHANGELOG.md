@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.2.1
+
+- `ingesters.py`: Fixed import bug.
+
 ### v0.2.0
 
 Port ORM and DAL to `fightfor-orm`:

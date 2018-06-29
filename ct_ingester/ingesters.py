@@ -3,7 +3,7 @@
 import abc
 from typing import Union, List, Type
 
-from fform.orm_ct import OrmBase
+from fform.orm_base import OrmBase
 from fform.orm_ct import Study
 from fform.orm_ct import OversightInfo
 from fform.orm_ct import ExpandedAccessInfo
