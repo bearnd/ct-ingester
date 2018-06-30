@@ -1,5 +1,12 @@
 ## Changelog
 
+### v0.2.2
+
+- `ingesters.py`: Fixed bug in the `delete_existing_protocol_outcomes` method of the `IngesterDocumentClinicalTrial` class where the records were being deleted in the wrong order causing foreign-key constraints to fail.
+- `ingesters.py`: Fixed bug in the `delete_existing_study_docs` method of the `IngesterDocumentClinicalTrial` class where the records were being deleted in the wrong order causing foreign-key constraints to fail.
+- `ingesters.py`: Fixed bug in the `delete_existing_arm_groups` method of the `IngesterDocumentClinicalTrial` class where the records were being deleted in the wrong order in addition to having missed `InterventionArmGroup` records causing foreign-key constraints to fail.
+- Added another clinical-trial document to the test assets and extended tests to include it.
+
 ### v0.2.1
 
 - `ingesters.py`: Fixed import bug.

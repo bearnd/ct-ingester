@@ -17,6 +17,8 @@ from fform.orm_ct import ProtocolOutcome
 from fform.orm_ct import StudyOutcome
 from fform.orm_ct import ArmGroup
 from fform.orm_ct import StudyArmGroup
+from fform.orm_ct import StudyIntervention
+from fform.orm_ct import InterventionArmGroup
 from fform.orm_ct import StudyDoc
 from fform.orm_ct import StudyStudyDoc
 from fform.dals_ct import DalClinicalTrials
@@ -461,13 +463,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             for study_outcome in study_outcomes
         ]
 
-        # Delete all related `ProtocolOutcome` records.
-        for protocol_outcome_id in protocol_outcome_ids:
-            self.dal.delete(
-                orm_class=ProtocolOutcome,
-                pk=protocol_outcome_id
-            )
-
         # Collect all `StudyOutcome` IDs.
         study_outcome_ids = [
             study_outcome.study_primary_outcome_id
@@ -479,6 +474,13 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             self.dal.delete(
                 orm_class=StudyOutcome,
                 pk=study_outcome_id
+            )
+
+        # Delete all related `ProtocolOutcome` records.
+        for protocol_outcome_id in protocol_outcome_ids:
+            self.dal.delete(
+                orm_class=ProtocolOutcome,
+                pk=protocol_outcome_id
             )
 
     @log_ingestion_of_document(document_name="protocol_outcome")
@@ -558,18 +560,25 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             do_sort=False,
         )  # type: List[StudyArmGroup]
 
-        # Collect all `ArmGroup` IDs.
-        arm_group_ids = [
-            study_arm_group.arm_group_id
-            for study_arm_group in study_arm_groups
-        ]
+        # Collect all `StudyIntervention` objects linked to the given `Study`
+        # record.
+        study_interventions = self.dal.bget_by_attr(
+            orm_class=StudyIntervention,
+            attr_name="study_id",
+            attr_values=[study.study_id],
+            do_sort=False,
+        )  # type: List[StudyIntervention]
 
-        # Delete all related `ArmGroup` records.
-        for arm_group_id in arm_group_ids:
-            self.dal.delete(
-                orm_class=ArmGroup,
-                pk=arm_group_id,
-            )
+        # Collect all `InterventionArmGroup` objects linked to the given `Study`
+        # record through the collected `StudyIntervention` records.
+        intervention_arm_groups = []
+        for study_intervention in study_interventions:
+            intervention_arm_groups += self.dal.bget_by_attr(
+                orm_class=InterventionArmGroup,
+                attr_name="intervention_id",
+                attr_values=[study_intervention.intervention_id],
+                do_sort=False,
+            )  # type: List[InterventionArmGroup]
 
         # Collect all `StudyArmGroup` IDs.
         study_arm_group_ids = [
@@ -577,11 +586,41 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             for study_arm_group in study_arm_groups
         ]
 
+        # Collect all `InterventionArmGroup` IDs.
+        interventions_arm_group_ids = [
+            intervention_arm_group.intervention_arm_group_id
+            for intervention_arm_group in intervention_arm_groups
+        ]
+
+        # Collect all `ArmGroup` IDs.
+        arm_group_ids = [
+            study_arm_group.arm_group_id
+            for study_arm_group in study_arm_groups
+        ] + [
+            intervention_arm_group.arm_group_id
+            for intervention_arm_group in intervention_arm_groups
+        ]
+        arm_group_ids = list(set(arm_group_ids))
+
         # Delete all related `StudyArmGroup` records.
         for study_arm_group_id in study_arm_group_ids:
             self.dal.delete(
                 orm_class=StudyArmGroup,
                 pk=study_arm_group_id
+            )
+
+        # Delete all related `InterventionArmGroup` records.
+        for interventions_arm_group_id in interventions_arm_group_ids:
+            self.dal.delete(
+                orm_class=InterventionArmGroup,
+                pk=interventions_arm_group_id
+            )
+
+        # Delete all related `ArmGroup` records.
+        for arm_group_id in arm_group_ids:
+            self.dal.delete(
+                orm_class=ArmGroup,
+                pk=arm_group_id,
             )
 
     @log_ingestion_of_document(document_name="arm_group")
@@ -846,13 +885,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             for study_study_doc in study_study_docs
         ]
 
-        # Delete all related `StudyDoc` records.
-        for study_doc_id in study_doc_ids:
-            self.dal.delete(
-                orm_class=StudyDoc,
-                pk=study_doc_id,
-            )
-
         # Collect all `StudyStudyDoc` IDs.
         study_study_doc_ids = [
             study_study_doc.study_study_doc_id
@@ -864,6 +896,13 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             self.dal.delete(
                 orm_class=StudyStudyDoc,
                 pk=study_study_doc_id
+            )
+
+        # Delete all related `StudyDoc` records.
+        for study_doc_id in study_doc_ids:
+            self.dal.delete(
+                orm_class=StudyDoc,
+                pk=study_doc_id,
             )
 
     @log_ingestion_of_document(document_name="study_doc")
