@@ -461,13 +461,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             for study_outcome in study_outcomes
         ]
 
-        # Delete all related `ProtocolOutcome` records.
-        for protocol_outcome_id in protocol_outcome_ids:
-            self.dal.delete(
-                orm_class=ProtocolOutcome,
-                pk=protocol_outcome_id
-            )
-
         # Collect all `StudyOutcome` IDs.
         study_outcome_ids = [
             study_outcome.study_primary_outcome_id
@@ -479,6 +472,13 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             self.dal.delete(
                 orm_class=StudyOutcome,
                 pk=study_outcome_id
+            )
+
+        # Delete all related `ProtocolOutcome` records.
+        for protocol_outcome_id in protocol_outcome_ids:
+            self.dal.delete(
+                orm_class=ProtocolOutcome,
+                pk=protocol_outcome_id
             )
 
     @log_ingestion_of_document(document_name="protocol_outcome")
