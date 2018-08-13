@@ -1,5 +1,10 @@
 ## Changelog
 
+### v0.2.3
+
+- Updated `.gitignore`.
+- Updated the `parse_eligibility` method of the `ParseXmlClinicalStudy` class to replace `N/A` values under `minimum_age` and `maximum_age` with `None`.
+
 ### v0.2.2
 
 - `ingesters.py`: Fixed bug in the `delete_existing_protocol_outcomes` method of the `IngesterDocumentClinicalTrial` class where the records were being deleted in the wrong order causing foreign-key constraints to fail.
