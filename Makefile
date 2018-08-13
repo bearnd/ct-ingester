@@ -48,8 +48,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 
 test: ## run tests quickly with the default Python
-	py.test
-
+	python -m unittest
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source ct_ingester -m pytest
