@@ -1,5 +1,7 @@
 ---
 
+# PostgreSQL variables
+
 # Define the encrypted SQL password variable outside the nested structures due
 # to the issue described in https://stackoverflow
 # .com/questions/50770524/ansible-vault-inline-variable-with-to-nice-json
@@ -16,58 +18,92 @@ sql_password: !vault |
 # PostgreSQL Server Settings.
 postgresql_python_library: "python-psycopg2"
 
-# PostgreSQL Server Databases.
+# PostgreSQL Databases.
 postgresql_databases:
   - name: "fightfor"
     port: 5432
   - name: "test"
     port: 5432
-# PostgreSQL Server Users.
+
+# PostgreSQL Users.
 postgresql_users:
-  - name: "ct_ingester"
+  - name: "{{ system.user }}"
     password: "{{ sql_password }}"
     port: 5432
 
-app_ct_ingester:
+# PostgreSQL schemata.
+postgresql_schemata:
+  - clinicaltrials
 
-  # Application user settings.
-  user: ct_ingester
-  group: ct_ingester
 
+project:
+  name: "ct-ingester"
+
+system:
+  # User name.
+  user: "ct_ingester"
+  # User group.
+  group: "ct_ingester"
   # Application directories.
-  config_dir: /etc/ct-ingester
-  share_dir: /usr/local/share/ct-ingester
-  run_dir: /var/run/ct-ingester
-  log_dir: /var/log/ct-ingester
-  virtual_env_dir: /usr/local/share/ct-ingester/venvs/ct-ingester
+  directories:
+    config: "/etc/{{ project.name }}"
+    share: "/usr/local/share/{{ project.name }}"
+    run: "/var/run/{{ project.name }}"
+    log: "/var/log/{{ project.name }}"
+    virtual_env: "/usr/local/share/{{ project.name }}/venvs/{{ project.name }}"
 
-  # Gunicorn Configuration Settings.
-  gunicorn:
-    host: "127.0.0.1"
-    port: 5555
-    workers: 4
-    worker_class: sync
+# Application Configuration Settings.
+config:
+  test:
+    # General Settings.
+    logger_level: DEBUG
 
-  # Application Configuration Settings.
-  config:
+    # PostgreSQL Server Configuration Settings.
+    sql_host: "localhost"
+    sql_port: 5432
+    sql_username: "{{ system.user }}"
+    sql_password: "{{ sql_password }}"
+    sql_db: "test"
 
-    dev:
-      # General Settings.
-      logger_level: DEBUG
+    # Gunicorn Configuration Settings.
+    gunicorn:
+      host: "127.0.0.1"
+      port: 5555
+      workers: 1
+      worker_class: sync
 
-      # PostgreSQL Server Configuration Settings.
-      sql_host: "localhost"
-      sql_port: 5432
-      sql_username: "ct_ingester"
-      sql_password: "{{ sql_password }}"
-      sql_db: "fightfor"
-    prod:
-      # General Settings.
-      logger_level: INFO
+  dev:
+    # General Settings.
+    logger_level: DEBUG
 
-      # PostgreSQL Server Configuration Settings.
-      sql_host: "localhost"
-      sql_port: 5432
-      sql_username: "ct_ingester"
-      sql_password: "{{ sql_password }}"
-      sql_db: "fightfor"
+    # PostgreSQL Server Configuration Settings.
+    sql_host: "localhost"
+    sql_port: 5432
+    sql_username: "{{ system.user }}"
+    sql_password: "{{ sql_password }}"
+    sql_db: "fightfor"
+
+    # Gunicorn Configuration Settings.
+    gunicorn:
+      host: "127.0.0.1"
+      port: 5555
+      workers: 1
+      worker_class: sync
+
+  prod:
+    # General Settings.
+    logger_level: INFO
+
+    # PostgreSQL Server Configuration Settings.
+    sql_host: "localhost"
+    sql_port: 5432
+    sql_username: "{{ system.user }}"
+    sql_password: "{{ sql_password }}"
+    sql_db: "fightfor"
+
+    # Gunicorn Configuration Settings.
+    gunicorn:
+      host: "127.0.0.1"
+      port: 5555
+      workers: 4
+      worker_class: sync
