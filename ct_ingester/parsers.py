@@ -660,6 +660,14 @@ class ParserXmlClinicaStudy(ParserXmlBase):
             "healthy_volunteers": self._et(element.find("healthy_volunteers")),
         }
 
+        # Replace "N/A" values under `minimum_age` with `None`.
+        if eligibility["minimum_age"] == "N/A":
+            eligibility["minimum_age"] = None
+
+        # Replace "N/A" values under `maximum_age` with `None`.
+        if eligibility["maximum_age"] == "N/A":
+            eligibility["maximum_age"] = None
+
         return eligibility
 
     def parse_investigator(
