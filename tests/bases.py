@@ -18,7 +18,7 @@ class TestBase(unittest.TestCase):
 
         # Load the configuration.
         self.cfg = import_config(
-            fname_config_file="/etc/ct-ingester/ct-ingester.json",
+            fname_config_file="/etc/ct-ingester/ct-ingester-test.json",
         )
 
         self.dal = DalClinicalTrials(
