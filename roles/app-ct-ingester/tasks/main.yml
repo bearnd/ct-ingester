@@ -7,11 +7,18 @@
   ignore_errors: true
   become: true
 
+- name: Install apt dependencies.
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ dependencies.apt }}"
+  become: true
+
 - name: Install PostgreSQL.
   include_role:
     name: geerlingguy.postgresql
   ignore_errors: true
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
 
 - name: Create schemata in the `fightfor` database under PostgreSQL.
   postgresql_schema:
@@ -22,7 +29,7 @@
   with_items: "{{ postgresql_schemata }}"
   become: true
   become_user: postgres
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
 
 - name: Create schemata in the `test` database under PostgreSQL.
   postgresql_schema:
@@ -33,14 +40,25 @@
   with_items: "{{ postgresql_schemata }}"
   become: true
   become_user: postgres
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
 
-- name: Install apt dependencies.
-  apt:
+- name: Install extensions in the `fightfor` database under PostgreSQL.
+  postgresql_ext:
+    db: "fightfor"
     name: "{{ item }}"
-    state: latest
-  with_items: "{{ dependencies.apt }}"
+  with_items: "{{ postgresql_extensions }}"
   become: true
+  become_user: postgres
+  when: is_vagrant is defined and is_vagrant == True
+
+- name: Install extensions in the `test` database under PostgreSQL.
+  postgresql_ext:
+    db: "test"
+    name: "{{ item }}"
+  with_items: "{{ postgresql_extensions }}"
+  become: true
+  become_user: postgres
+  when: is_vagrant is defined and is_vagrant == True
 
 - name: Create service group.
   group:
@@ -80,7 +98,7 @@
   with_items:
     - "pg_hba.conf"
     - "postgresql.conf"
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
 
 - name: Install system-level Python dependencies
   pip:
@@ -146,7 +164,7 @@
     mode: 0600
   become: true
   become_user: "{{ system.user }}"
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
 
 - name: Create `dev` configuration file (Vagrant).
   template:
@@ -157,7 +175,7 @@
     mode: 0600
   become: true
   become_user: "{{ system.user }}"
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
 
 - name: Create `prod` configuration file (Vagrant).
   template:
@@ -177,13 +195,13 @@
     state: latest
     virtualenv: "{{ system.directories.virtual_env }}"
     virtualenv_python: python3.5
-  when: is_vagrant == True
+  when: is_vagrant is defined and is_vagrant == True
   become: true
   become_user: "{{ system.user }}"
 
 - name: Install Python package requirements.
   pip:
-    chdir: "/home/vagrant/{{ project.name }}"
+    chdir: "{{ system.directories.share }}/src"
     requirements: requirements.txt
     state: latest
     virtualenv: "{{ system.directories.virtual_env }}"

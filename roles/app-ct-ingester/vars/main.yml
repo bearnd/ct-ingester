@@ -35,6 +35,11 @@ postgresql_users:
 postgresql_schemata:
   - clinicaltrials
 
+# PostgreSQL extensions.
+postgresql_extensions:
+  - pg_trgm
+  - postgis
+
 
 project:
   name: "ct-ingester"
