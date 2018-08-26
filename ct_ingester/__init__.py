@@ -12,5 +12,6 @@ from ct_ingester import loggers
 from ct_ingester import ingesters
 from ct_ingester import parser_utils
 from ct_ingester import parsers
+from ct_ingester import retrievers
 from ct_ingester import utils
 from ct_ingester import ct_ingester
