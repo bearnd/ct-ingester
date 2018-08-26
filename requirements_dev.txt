@@ -15,3 +15,6 @@ lxml==4.2.1
 dateparser==0.7.0
 git+http://gitlab-ci-token:YGVQHuviVKnqbJ1SyAXd@sunny.diskstation.me:30000/bearnd/fightfor-orm.git#egg=fform
 coverage==4.1
+requests==2.19.1
+GeoAlchemy2==0.4.2
+Shapely==1.6.4
