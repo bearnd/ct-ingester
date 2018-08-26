@@ -1,5 +1,15 @@
 ## Changelog
 
+### v0.3.0
+
+- Refactored and cleaned-up Ansible role adding the ability to provide the service user with access to the PostgreSQL schemata created for local-testing.
+- Updated the unit-tests.
+- Updated Python dependencies.
+- Added a new `retrievers.py` module with a `RetrieverGoogleMaps` class that can be used to perform place-search and place-details queries against the Google Place API.
+- Updated the Ansible configuration and added the Google Maps API key.
+- Added a new `find_facility_google_place` function to find a matching Google Place for a `Facility` record object in an iterative manner.
+- Added a new script to proccess existing facilities and find and store canonicalised facilities.
+
 ### v0.2.3
 
 - Updated `.gitignore`.
