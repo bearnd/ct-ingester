@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from typing import Iterable
+
+import itertools
 from typing import Dict
 
 from fform.orm_ct import Facility
@@ -113,3 +116,24 @@ def find_facility_google_place(
             return response
 
     return response
+
+
+def chunk_generator(
+    generator: Iterable,
+    chunk_size: int
+):
+    """Chunks a generator into small equally sized chunks generated lazily.
+
+    Args:
+        generator (Iterable): The generator to chunk.
+        chunk_size (int): The maximum size of each chunk.
+
+    Yields:
+        itertools.chain: The generator chunks.
+    """
+
+    for first in generator:
+        yield itertools.chain(
+            [first],
+            itertools.islice(generator, chunk_size - 1),
+        )
