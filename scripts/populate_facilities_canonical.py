@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import multiprocessing
 from typing import List, Dict, Optional, Tuple, Union
 
 import sqlalchemy.orm
@@ -10,7 +11,7 @@ from ct_ingester.config import import_config
 from ct_ingester.loggers import create_logger
 from ct_ingester.retrievers import RetrieverGoogleMaps
 from ct_ingester.utils import find_facility_google_place
-from ct_ingester.excs import GooglePlacesApiQueryLimitError
+from ct_ingester.utils import chunk_generator
 
 
 logger = create_logger(logger_name=__name__)
@@ -47,171 +48,228 @@ def _get_address_component_name(
     return None
 
 
+def find_place(facility: Facility):
+    global retriever
+    return find_facility_google_place(retriever, facility)
+
+
 def populate():
 
     with dal.session_scope() as session:
         query = session.query(Facility)  # type: sqlalchemy.orm.Query
         query = query.filter(Facility.facility_canonical_id.is_(None))
 
-        for facility in query.yield_per(5):
+        facilities_chunks = chunk_generator(
+            generator=iter(query.yield_per(10)),
+            chunk_size=10,
+        )
+        pool = multiprocessing.Pool(processes=10)
+        for facilities_chunk in facilities_chunks:
 
-            response = find_facility_google_place(
-                retriever=retriever,
-                facility=facility
-            )
+            facilities = list(facilities_chunk)
+            responses = pool.map(find_place, facilities)
 
-            # Retrieving Google Place ID from the first candidate.
-            place_id = response["candidates"][0]["place_id"]
+            for facility, response in zip(facilities, responses):
+                if not response:
+                    continue
 
-            # Retrieving Google Place details for the first candidate's ID.
-            response = retriever.get_place_details(google_place_id=place_id)
+                # Retrieving Google Place ID from the first candidate.
+                place_id = response["candidates"][0]["place_id"]
 
-            if not response:
-                continue
+                facility_canonical_id = dal.iodu_facility_canonical(
+                    google_place_id=place_id,
+                    name=None,
+                    google_url=None,
+                    url=None,
+                    address=None,
+                    phone_number=None,
+                    coordinate_longitude=None,
+                    coordinate_latitude=None,
+                    country=None,
+                    administrative_area_level_1=None,
+                    administrative_area_level_2=None,
+                    administrative_area_level_3=None,
+                    administrative_area_level_4=None,
+                    administrative_area_level_5=None,
+                    locality=None,
+                    sublocality=None,
+                    sublocality_level_1=None,
+                    sublocality_level_2=None,
+                    sublocality_level_3=None,
+                    sublocality_level_4=None,
+                    sublocality_level_5=None,
+                    colloquial_area=None,
+                    floor=None,
+                    room=None,
+                    intersection=None,
+                    neighborhood=None,
+                    post_box=None,
+                    postal_code=None,
+                    postal_code_prefix=None,
+                    postal_code_suffix=None,
+                    postal_town=None,
+                    premise=None,
+                    subpremise=None,
+                    route=None,
+                    street_address=None,
+                    street_number=None,
+                )
 
-            print(response)
+                dal.update_attr_value(
+                    orm_class=Facility,
+                    pk=facility.facility_id,
+                    attr_name="facility_canonical_id",
+                    attr_value=facility_canonical_id,
+                )
 
-            if not response["status"] == "OK":
-                continue
+            # # Retrieving Google Place details for the first candidate's ID.
+            # response = retriever.get_place_details(google_place_id=place_id)
+            #
+            # if not response:
+            #     continue
+            #
+            # print(response)
+            #
+            # if not response["status"] == "OK":
+            #     continue
+            #
+            # result = response["result"]
+            #
+            # components = result["address_components"]
 
-            result = response["result"]
+            # Fallback to the country defined in the facility if Google returns
+            # no country.
+            # country = _get_address_component_name(
+            #     components, ("country",)
+            # )
+            # country = country if country else facility.country
 
-            components = result["address_components"]
 
-            facility_canonical_id = dal.iodu_facility_canonical(
-                google_place_id=place_id,
-                name=result["name"],
-                google_url=result["url"],
-                url=result.get("website"),
-                address=result["formatted_address"],
-                phone_number=result.get("international_phone_number"),
-                coordinate_longitude=result["geometry"]["location"]["lng"],
-                coordinate_latitude=result["geometry"]["location"]["lat"],
-                country=_get_address_component_name(
-                    components, ("country",)
-                ),
-                administrative_area_level_1=_get_address_component_name(
-                    components,
-                    ("administrative_area_level_1",)
-                ),
-                administrative_area_level_2=_get_address_component_name(
-                    components,
-                    ("administrative_area_level_2",)
-                ),
-                administrative_area_level_3=_get_address_component_name(
-                    components,
-                    ("administrative_area_level_3",)
-                ),
-                administrative_area_level_4=_get_address_component_name(
-                    components,
-                    ("administrative_area_level_4",)
-                ),
-                administrative_area_level_5=_get_address_component_name(
-                    components,
-                    ("administrative_area_level_5",)
-                ),
-                locality=_get_address_component_name(
-                    components, ("locality",)
-                ),
-                sublocality=_get_address_component_name(
-                    components,
-                    ("sublocality",),
-                    (
-                        "sublocality_level_1",
-                        "sublocality_level_2",
-                        "sublocality_level_3",
-                        "sublocality_level_4",
-                        "sublocality_level_5",
-                    )
-                ),
-                sublocality_level_1=_get_address_component_name(
-                    components,
-                    ("sublocality_level_1",)
-                ),
-                sublocality_level_2=_get_address_component_name(
-                    components,
-                    ("sublocality_level_2",)
-                ),
-                sublocality_level_3=_get_address_component_name(
-                    components,
-                    ("sublocality_level_3",)
-                ),
-                sublocality_level_4=_get_address_component_name(
-                    components,
-                    ("sublocality_level_4",)
-                ),
-                sublocality_level_5=_get_address_component_name(
-                    components,
-                    ("sublocality_level_5",)
-                ),
-                colloquial_area=_get_address_component_name(
-                    components,
-                    ("colloquial_area",)
-                ),
-                floor=_get_address_component_name(
-                    components,
-                    ("floor",)
-                ),
-                room=_get_address_component_name(
-                    components,
-                    ("room",)
-                ),
-                intersection=_get_address_component_name(
-                    components,
-                    ("intersection",)
-                ),
-                neighborhood=_get_address_component_name(
-                    components,
-                    ("neighborhood",)
-                ),
-                post_box=_get_address_component_name(
-                    components,
-                    ("post_box",)
-                ),
-                postal_code=_get_address_component_name(
-                    components,
-                    ("postal_code",)
-                ),
-                postal_code_prefix=_get_address_component_name(
-                    components,
-                    ("postal_code_prefix",)
-                ),
-                postal_code_suffix=_get_address_component_name(
-                    components,
-                    ("postal_code_suffix",)
-                ),
-                postal_town=_get_address_component_name(
-                    components,
-                    ("postal_town",)
-                ),
-                premise=_get_address_component_name(
-                    components,
-                    ("premise",)
-                ),
-                subpremise=_get_address_component_name(
-                    components,
-                    ("subpremise",)
-                ),
-                route=_get_address_component_name(
-                    components,
-                    ("route",)
-                ),
-                street_address=_get_address_component_name(
-                    components,
-                    ("street_address",)
-                ),
-                street_number=_get_address_component_name(
-                    components,
-                    ("street_number",)
-                ),
-            )
-
-            dal.update_attr_value(
-                orm_class=Facility,
-                pk=facility.facility_id,
-                attr_name="facility_canonical_id",
-                attr_value=facility_canonical_id,
-            )
+            # facility_canonical_id = dal.iodu_facility_canonical(
+            #     google_place_id=place_id,
+            #     name=result["name"],
+            #     google_url=result["url"],
+            #     url=result.get("website"),
+            #     address=result["formatted_address"],
+            #     phone_number=result.get("international_phone_number"),
+            #     coordinate_longitude=result["geometry"]["location"]["lng"],
+            #     coordinate_latitude=result["geometry"]["location"]["lat"],
+            #     country=country,
+            #     administrative_area_level_1=_get_address_component_name(
+            #         components,
+            #         ("administrative_area_level_1",)
+            #     ),
+            #     administrative_area_level_2=_get_address_component_name(
+            #         components,
+            #         ("administrative_area_level_2",)
+            #     ),
+            #     administrative_area_level_3=_get_address_component_name(
+            #         components,
+            #         ("administrative_area_level_3",)
+            #     ),
+            #     administrative_area_level_4=_get_address_component_name(
+            #         components,
+            #         ("administrative_area_level_4",)
+            #     ),
+            #     administrative_area_level_5=_get_address_component_name(
+            #         components,
+            #         ("administrative_area_level_5",)
+            #     ),
+            #     locality=_get_address_component_name(
+            #         components, ("locality",)
+            #     ),
+            #     sublocality=_get_address_component_name(
+            #         components,
+            #         ("sublocality",),
+            #         (
+            #             "sublocality_level_1",
+            #             "sublocality_level_2",
+            #             "sublocality_level_3",
+            #             "sublocality_level_4",
+            #             "sublocality_level_5",
+            #         )
+            #     ),
+            #     sublocality_level_1=_get_address_component_name(
+            #         components,
+            #         ("sublocality_level_1",)
+            #     ),
+            #     sublocality_level_2=_get_address_component_name(
+            #         components,
+            #         ("sublocality_level_2",)
+            #     ),
+            #     sublocality_level_3=_get_address_component_name(
+            #         components,
+            #         ("sublocality_level_3",)
+            #     ),
+            #     sublocality_level_4=_get_address_component_name(
+            #         components,
+            #         ("sublocality_level_4",)
+            #     ),
+            #     sublocality_level_5=_get_address_component_name(
+            #         components,
+            #         ("sublocality_level_5",)
+            #     ),
+            #     colloquial_area=_get_address_component_name(
+            #         components,
+            #         ("colloquial_area",)
+            #     ),
+            #     floor=_get_address_component_name(
+            #         components,
+            #         ("floor",)
+            #     ),
+            #     room=_get_address_component_name(
+            #         components,
+            #         ("room",)
+            #     ),
+            #     intersection=_get_address_component_name(
+            #         components,
+            #         ("intersection",)
+            #     ),
+            #     neighborhood=_get_address_component_name(
+            #         components,
+            #         ("neighborhood",)
+            #     ),
+            #     post_box=_get_address_component_name(
+            #         components,
+            #         ("post_box",)
+            #     ),
+            #     postal_code=_get_address_component_name(
+            #         components,
+            #         ("postal_code",)
+            #     ),
+            #     postal_code_prefix=_get_address_component_name(
+            #         components,
+            #         ("postal_code_prefix",)
+            #     ),
+            #     postal_code_suffix=_get_address_component_name(
+            #         components,
+            #         ("postal_code_suffix",)
+            #     ),
+            #     postal_town=_get_address_component_name(
+            #         components,
+            #         ("postal_town",)
+            #     ),
+            #     premise=_get_address_component_name(
+            #         components,
+            #         ("premise",)
+            #     ),
+            #     subpremise=_get_address_component_name(
+            #         components,
+            #         ("subpremise",)
+            #     ),
+            #     route=_get_address_component_name(
+            #         components,
+            #         ("route",)
+            #     ),
+            #     street_address=_get_address_component_name(
+            #         components,
+            #         ("street_address",)
+            #     ),
+            #     street_number=_get_address_component_name(
+            #         components,
+            #         ("street_number",)
+            #     ),
+            # )
 
 
 if __name__ == '__main__':
