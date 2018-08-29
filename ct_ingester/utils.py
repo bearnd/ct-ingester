@@ -81,6 +81,11 @@ def find_facility_google_place(
             search_input_components[i:],
         )))
 
+        # If the remaining query components yield an empty string then we cant
+        # perform a search so we're returning `None`.
+        if not query:
+            return None
+
         msg = "Performing place-search for facility '{}' with query '{}'."
         msg_fmt = msg.format(Facility, query)
         logger.debug(msg_fmt)
@@ -97,7 +102,8 @@ def find_facility_google_place(
         # If the response has a `OVER_QUERY_LIMIT` status then throw the
         # corresponding exception.
         elif response["status"] == "OVER_QUERY_LIMIT":
-            raise GooglePlacesApiQueryLimitError
+            msg_fmt = "Query limit exceeded."
+            raise GooglePlacesApiQueryLimitError(msg_fmt)
         # If the request succeeded and a place was found then return the
         # response.
         elif response["status"] == "OK":
