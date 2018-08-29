@@ -60,10 +60,10 @@ def populate():
         query = query.filter(Facility.facility_canonical_id.is_(None))
 
         facilities_chunks = chunk_generator(
-            generator=iter(query.yield_per(10)),
-            chunk_size=10,
+            generator=iter(query.yield_per(50)),
+            chunk_size=50,
         )
-        pool = multiprocessing.Pool(processes=10)
+        pool = multiprocessing.Pool(processes=50)
         for facilities_chunk in facilities_chunks:
 
             facilities = list(facilities_chunk)
