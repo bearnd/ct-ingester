@@ -1,5 +1,13 @@
 ## Changelog
 
+### v0.3.1
+
+- Made fixes to the `find_facility_google_place` function.
+- Added a new `chunk_generator` function to chunk a generator.
+- Ansible role bug fixes.
+- As this script will now be exclusively populating the Google Place ID for the different facilities I commented out the majority of the code and added multiprocessing to speed up the process.
+- Updated the multiprocessing pool used in `populate` to use 50 processes instead of 10.
+
 ### v0.3.0
 
 - Refactored and cleaned-up Ansible role adding the ability to provide the service user with access to the PostgreSQL schemata created for local-testing.

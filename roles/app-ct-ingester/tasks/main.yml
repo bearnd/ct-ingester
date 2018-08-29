@@ -199,7 +199,7 @@
   become: true
   become_user: "{{ system.user }}"
 
-- name: Install Python package requirements.
+- name: Install Python package requirements (Production).
   pip:
     chdir: "{{ system.directories.share }}/src"
     requirements: requirements.txt
@@ -208,3 +208,4 @@
     virtualenv_python: python3.5
   become: true
   become_user: "{{ system.user }}"
+  when: is_vagrant is not defined or is_vagrant == False
