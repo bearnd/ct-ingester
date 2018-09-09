@@ -1,5 +1,14 @@
 ## Changelog
 
+### v0.4.0
+
+- Moved the `find_facility_google_place` function from `utils.py` to `retrievers.py`.
+- Added a new `get_place_details` function to `retrievers.py` to retrieve the details for a google place through its ID.
+- Renamed the script under `populate_facilities_canonical.py` and updated to only retrieve and store the Google Place ID for facilities without that info.
+- Added a new script to retrieve and populate the details for canonical facilities that have a Google Place ID but no country and therefore no details.
+- Added a new script to copy Google Place details from facilities to affiliations.
+- Added a new script to populate the `study_facilities` table.
+
 ### v0.3.1
 
 - Made fixes to the `find_facility_google_place` function.
