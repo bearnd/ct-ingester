@@ -163,9 +163,6 @@ class ParserXmlClinicaStudy(ParserXmlBase):
         if not textblock:
             return None
 
-        # Replace instances of 1 or more whitespace character with a single
-        # space. This will include new-lines, tab-characters, and spaces.
-        textblock = re.sub("\s+", " ", textblock)
         # Strip and leading and trailing whitespace.
         textblock = textblock.strip()
 
