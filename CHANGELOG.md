@@ -1,5 +1,11 @@
 ## Changelog
 
+### v0.4.1
+
+Issue No. 1: Improper textblock whitespace sanitization:
+
+- Updated the `_etb` method of the `ParserXmlClinicaStudy` class and removed the whitespace sanitization operation as it was breaking the format of long text-blocks.
+
 ### v0.4.0
 
 - Moved the `find_facility_google_place` function from `utils.py` to `retrievers.py`.
