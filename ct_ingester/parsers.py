@@ -1241,7 +1241,7 @@ class ParserXmlClinicaStudy(ParserXmlBase):
                 element.find("patient_data")
             ),
             "study_docs": self.parse_study_docs(
-                element.find("study_docs_struct")
+                element.find("study_docs")
             ),
         }
 

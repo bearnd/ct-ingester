@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.4.2
+
+- Fixed bug that precluded `StudyDocs` records from being populated.
+
 ### v0.4.1
 
 Issue No. 1: Improper textblock whitespace sanitization:
