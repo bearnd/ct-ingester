@@ -318,7 +318,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_oversight_info(
+        obj_id = self.dal.insert_oversight_info(
             has_dmc=doc.get("has_dmc"),
             is_fda_regulated_drug=doc.get("is_fda_regulated_drug"),
             is_fda_regulated_device=doc.get("is_fda_regulated_device"),
@@ -386,7 +386,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_expanded_access_info(
+        obj_id = self.dal.insert_expanded_access_info(
             expanded_access_type_individual=doc.get(
                 "expanded_access_type_individual"
             ),
@@ -419,7 +419,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_study_design_info(
+        obj_id = self.dal.insert_study_design_info(
             allocation=doc.get("allocation"),
             intervention_model=doc.get("intervention_model"),
             intervention_model_description=doc.get(
@@ -465,7 +465,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         # Collect all `StudyOutcome` IDs.
         study_outcome_ids = [
-            study_outcome.study_primary_outcome_id
+            study_outcome.study_outcome_id
             for study_outcome in study_outcomes
         ]
 
@@ -502,7 +502,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_protocol_outcome(
+        obj_id = self.dal.insert_protocol_outcome(
             measure=doc.get("measure"),
             time_frame=doc.get("time_frame"),
             description=doc.get("description"),
@@ -529,7 +529,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_enrollment(
+        obj_id = self.dal.insert_enrollment(
             value=doc.get("value"),
             enrollment_type=doc.get("type"),
         )
@@ -642,7 +642,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_arm_group(
+        obj_id = self.dal.insert_arm_group(
             label=doc.get("arm_group_label"),
             arm_group_type=doc.get("arm_group_type"),
             description=doc.get("description"),
@@ -743,7 +743,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_study_dates(
+        obj_id = self.dal.insert_study_dates(
             study_first_submitted=self._edt(doc.get("study_first_submitted")),
             study_first_submitted_qc=self._edt(
                 doc.get("study_first_submitted_qc")
@@ -793,7 +793,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_responsible_party(
+        obj_id = self.dal.insert_responsible_party(
             name_title=doc.get("name_title"),
             organization=doc.get("organization"),
             responsible_party_type=doc.get("responsible_party_type"),
@@ -848,7 +848,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_patient_data(
+        obj_id = self.dal.insert_patient_data(
             sharing_ipd=doc.get("sharing_ipd"),
             ipd_description=doc.get("ipd_description"),
         )
@@ -924,7 +924,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_study_doc(
+        obj_id = self.dal.insert_study_doc(
             doc_id=doc.get("doc_id"),
             doc_type=doc.get("doc_type"),
             doc_url=doc.get("doc_url"),
@@ -952,7 +952,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_eligibility(
+        obj_id = self.dal.insert_eligibility(
             study_pop=doc.get("study_pop"),
             sampling_method=doc.get("sampling_method"),
             criteria=doc.get("criteria"),
