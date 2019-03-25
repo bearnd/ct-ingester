@@ -12,6 +12,7 @@ from fform.orm_ct import Enrollment
 from fform.orm_ct import Eligibility
 from fform.orm_ct import StudyDates
 from fform.orm_ct import ResponsibleParty
+from fform.orm_ct import PatientDataIpdInfoType
 from fform.orm_ct import PatientData
 from fform.orm_ct import StudySecondaryId
 from fform.orm_ct import ProtocolOutcome
@@ -867,6 +868,43 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
+    def delete_existing_pata_data_ipd_info_types(
+        self,
+        patient_data_id: int,
+    ) -> None:
+        """ Deletes the existing `PatientDataIpdInfoType` records associated
+            with the currently ingested `PatientData` record.
+
+        Args:
+            patient_data_id (int): The ID of the `PatientData` record for which
+                the `PatientDataIpdInfoType` records will be deleted.
+        """
+
+        if not patient_data_id:
+            return None
+
+        # Collect all `PatientDataIpdInfoType` objects linked to the given
+        # `PatientData` record.
+        ipd_info_types = self.dal.bget_by_attr(
+            orm_class=PatientDataIpdInfoType,
+            attr_name="patient_data_id",
+            attr_values=[patient_data_id],
+            do_sort=False,
+        )  # type: List[PatientDataIpdInfoType]
+
+        # Collect all `PatientDataIpdInfoType` IDs.
+        patient_data_ipd_info_type_ids = [
+            ipd_info_type.patient_data_ipd_info_type_id
+            for ipd_info_type in ipd_info_types
+        ]
+
+        # Delete all related `StudySecondaryId` records.
+        for patient_data_ipd_info_type_id in patient_data_ipd_info_type_ids:
+            self.dal.delete(
+                orm_class=PatientDataIpdInfoType,
+                pk=patient_data_ipd_info_type_id,
+            )
+
     @log_ingestion_of_document(document_name="patient_data")
     def ingest_patient_data(
         self,
@@ -889,6 +927,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         obj_id = self.dal.insert_patient_data(
             sharing_ipd=doc.get("sharing_ipd"),
             ipd_description=doc.get("ipd_description"),
+            ipd_time_frame=doc.get("ipd_time_frame"),
+            ipd_access_criteria=doc.get("ipd_access_criteria"),
+            ipd_url=doc.get("ipd_url"),
         )
 
         return obj_id
@@ -1152,6 +1193,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Update the `patient_data_id` of the existing `Study` record (if
         # defined) and delete the old `PatientData` record.
         if study and study.patient_data_id:
+            self.delete_existing_pata_data_ipd_info_types(
+                patient_data_id=patient_data_id,
+            )
             self.update_study_fk(
                 study=study,
                 fk_name="patient_data_id",
