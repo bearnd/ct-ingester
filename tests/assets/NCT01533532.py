@@ -5,7 +5,7 @@ document = """
   <!-- This xml conforms to an XML Schema at:
     https://clinicaltrials.gov/ct2/html/images/info/public.xsd -->
   <required_header>
-    <download_date>ClinicalTrials.gov processed this data on November 06, 2017</download_date>
+    <download_date>ClinicalTrials.gov processed this data on February 08, 2019</download_date>
     <link_text>Link to the current ClinicalTrials.gov record.</link_text>
     <url>https://clinicaltrials.gov/show/NCT01533532</url>
   </required_header>
@@ -119,17 +119,20 @@ document = """
     <country>Japan</country>
   </location_countries>
   <verification_date>May 2014</verification_date>
-  <!-- Old date names will be dropped in a few months (sometime in 2018)                        -->
-  <lastchanged_date>May 29, 2014</lastchanged_date>
-  <firstreceived_date>February 12, 2012</firstreceived_date>
-  <!-- New date names                                                                           -->
+  <!-- For several months we've had both old and new date name tags                             -->
+  <!-- Now, the old date names have been dropped.                                               -->
+  <!-- The new date name replacements are:                                                      -->
+  <!--     OLD (gone)                                        NEW (in use)                       -->
+  <!--   lastchanged_date                         becomes   last_update_submitted               -->
+  <!--   firstreceived_date                       becomes   study_first_submitted               -->
+  <!--   firstreceived_results_date               becomes   results_first_submitted             -->
+  <!--   firstreceived_results_disposition_date   becomes   disposition_first_submitted         -->
   <study_first_submitted>February 12, 2012</study_first_submitted>
   <study_first_submitted_qc>February 14, 2012</study_first_submitted_qc>
   <study_first_posted type="Estimate">February 15, 2012</study_first_posted>
   <last_update_submitted>May 29, 2014</last_update_submitted>
   <last_update_submitted_qc>May 29, 2014</last_update_submitted_qc>
   <last_update_posted type="Estimate">May 30, 2014</last_update_posted>
-  <!-- End of dates                                                                             -->
   <responsible_party>
     <responsible_party_type>Sponsor</responsible_party_type>
   </responsible_party>

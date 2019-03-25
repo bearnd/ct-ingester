@@ -83,3 +83,85 @@ class ParserXmlBaseTest(TestBase):
         result_eval = self.parser._eav(None, "some_attribute")
 
         self.assertIsNone(result_eval)
+
+
+class ParserXmlClinicalStudy(TestBase):
+
+    def test_yn_to_bool_yes(self):
+        """ Tests the `_yn_to_bool` method of the `ParserXmlClinicaStudy`
+            class when the element value is `Υes`.
+        """
+
+        element = etree.Element("some_element")
+        element.text = "Yes"
+
+        self.assertEqual(self.parser._yn_to_bool(element), True)
+
+    def test_yn_to_bool_no(self):
+        """ Tests the `_yn_to_bool` method of the `ParserXmlClinicaStudy`
+            class when the element value is `No`.
+        """
+
+        element = etree.Element("some_element")
+        element.text = "No"
+
+        self.assertEqual(self.parser._yn_to_bool(element), False)
+
+    def test_yn_to_bool_none(self):
+        """ Tests the `_yn_to_bool` method of the `ParserXmlClinicaStudy`
+            class when the element is undefined.
+        """
+
+        self.assertEqual(self.parser._yn_to_bool(None), None)
+
+    def test_etb(self):
+        """ Tests the `_etb` method of the `ParserXmlClinicaStudy` class with a
+            simple element with extra whitespace to test its sanitization.
+        """
+
+        element = etree.Element("some_element")
+        element_tb = etree.Element("textblock")
+        element_tb.text = "   test\ntest  test\n\ntest   "
+        element.append(element_tb)
+
+        self.assertEqual(self.parser._etb(element), "test\ntest  test\n\ntest")
+
+    def test_etb_none(self):
+        """ Tests the `_etb` method of the `ParserXmlClinicaStudy` class when
+            the element is `None`.
+        """
+
+        self.assertEqual(self.parser._etb(None), None)
+
+    def test_etb_textblock_none(self):
+        """ Tests the `_etb` method of the `ParserXmlClinicaStudy` class when
+            the element's textblock element is `None`.
+        """
+
+        element = etree.Element("some_element")
+
+        self.assertEqual(self.parser._etb(element), None)
+
+    def test_etb_textblock_empty(self):
+        """ Tests the `_etb` method of the `ParserXmlClinicaStudy` class when
+            the element's textblock element is an empty string.
+        """
+
+        element = etree.Element("some_element")
+        element_tb = etree.Element("textblock")
+        element_tb.text = ""
+        element.append(element_tb)
+
+        self.assertEqual(self.parser._etb(element), None)
+
+    def test_etb_textblock_whitespace(self):
+        """ Tests the `_etb` method of the `ParserXmlClinicaStudy` class when
+            the element's textblock element only consists of whitespace.
+        """
+
+        element = etree.Element("some_element")
+        element_tb = etree.Element("textblock")
+        element_tb.text = " "
+        element.append(element_tb)
+
+        self.assertEqual(self.parser._etb(element), None)
