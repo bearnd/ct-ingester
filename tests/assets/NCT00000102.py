@@ -5,7 +5,7 @@ document = """
   <!-- This xml conforms to an XML Schema at:
     https://clinicaltrials.gov/ct2/html/images/info/public.xsd -->
   <required_header>
-    <download_date>ClinicalTrials.gov processed this data on November 06, 2017</download_date>
+    <download_date>ClinicalTrials.gov processed this data on February 08, 2019</download_date>
     <link_text>Link to the current ClinicalTrials.gov record.</link_text>
     <url>https://clinicaltrials.gov/show/NCT00000102</url>
   </required_header>
@@ -92,17 +92,20 @@ document = """
     <country>United States</country>
   </location_countries>
   <verification_date>January 2004</verification_date>
-  <!-- Old date names will be dropped in a few months (sometime in 2018)                        -->
-  <lastchanged_date>June 23, 2005</lastchanged_date>
-  <firstreceived_date>November 3, 1999</firstreceived_date>
-  <!-- New date names                                                                           -->
+  <!-- For several months we've had both old and new date name tags                             -->
+  <!-- Now, the old date names have been dropped.                                               -->
+  <!-- The new date name replacements are:                                                      -->
+  <!--     OLD (gone)                                        NEW (in use)                       -->
+  <!--   lastchanged_date                         becomes   last_update_submitted               -->
+  <!--   firstreceived_date                       becomes   study_first_submitted               -->
+  <!--   firstreceived_results_date               becomes   results_first_submitted             -->
+  <!--   firstreceived_results_disposition_date   becomes   disposition_first_submitted         -->
   <study_first_submitted>November 3, 1999</study_first_submitted>
   <study_first_submitted_qc>November 3, 1999</study_first_submitted_qc>
   <study_first_posted type="Estimate">November 4, 1999</study_first_posted>
   <last_update_submitted>June 23, 2005</last_update_submitted>
   <last_update_submitted_qc>June 23, 2005</last_update_submitted_qc>
-  <last_update_posted type="Estimate">December 9, 2005</last_update_posted>
-  <!-- End of dates                                                                             -->
+  <last_update_posted type="Estimate">June 24, 2005</last_update_posted>
   <condition_browse>
     <!-- CAUTION:  The following MeSH terms are assigned with an imperfect algorithm            -->
     <mesh_term>Hyperplasia</mesh_term>
