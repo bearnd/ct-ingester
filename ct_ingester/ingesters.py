@@ -13,6 +13,7 @@ from fform.orm_ct import Eligibility
 from fform.orm_ct import StudyDates
 from fform.orm_ct import ResponsibleParty
 from fform.orm_ct import PatientData
+from fform.orm_ct import StudySecondaryId
 from fform.orm_ct import ProtocolOutcome
 from fform.orm_ct import StudyOutcome
 from fform.orm_ct import ArmGroup
@@ -433,6 +434,43 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         )
 
         return obj_id
+
+    def delete_existing_study_secondary_ids(
+        self,
+        study: Study,
+    ) -> None:
+        """ Deletes the existing `StudySecondaryId` records associated with the
+            currently ingested study.
+
+        Args:
+            study (Study): The existing `Study` record object for which the
+                `StudySecondaryId` records will be deleted.
+        """
+
+        if not study:
+            return None
+
+        # Collect all `StudySecondaryId` objects linked to the given `Study`
+        # record.
+        study_secondary_ids = self.dal.bget_by_attr(
+            orm_class=StudySecondaryId,
+            attr_name="study_id",
+            attr_values=[study.study_id],
+            do_sort=False,
+        )  # type: List[StudySecondaryId]
+
+        # Collect all `StudySecondaryId` IDs.
+        study_secondary_ids_ids = [
+            study_secondary_id.study_secondary_id_id
+            for study_secondary_id in study_secondary_ids
+        ]
+
+        # Delete all related `StudySecondaryId` records.
+        for study_secondary_ids_id in study_secondary_ids_ids:
+            self.dal.delete(
+                orm_class=StudySecondaryId,
+                pk=study_secondary_ids_id
+            )
 
     def delete_existing_protocol_outcomes(
         self,
@@ -999,13 +1037,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             attr_value=nct_id,
         )
 
-        # Retrieve the first secondary ID if defined.
-        secondary_ids = id_info.get("secondary_ids", [])
-        if secondary_ids:
-            secondary_id = secondary_ids[0]["secondary_id"]
-        else:
-            secondary_id = None
-
         # Create the `OversightInfo` record and hold on to its primary-key ID.
         oversight_info_id = self.ingest_oversight_info(
             doc.get("oversight_info"),
@@ -1131,7 +1162,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         obj_id = self.dal.iodu_study(
             org_study_id=id_info.get("org_study_id"),
-            secondary_id=secondary_id,
             nct_id=id_info.get("nct_id"),
             brief_title=doc.get("brief_title"),
             acronym=doc.get("acronym"),
@@ -1178,6 +1208,15 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 study_id=obj_id,
                 sponsor_id=sponsor_id,
                 sponsor_type=sponsor.get("type"),
+            )
+
+        # Delete the existing `StudySecondaryId` records (if they exist).
+        self.delete_existing_study_secondary_ids(study=study)
+        # Create `StudySecondaryId` records.
+        for secondary_id in id_info.get("secondary_ids", []):
+            self.dal.insert_study_secondary_id(
+                study_id=obj_id,
+                secondary_id=secondary_id.get("secondary_id"),
             )
 
         # Delete the existing `ProtocolOutcome` and `StudyOutcome` records (if
