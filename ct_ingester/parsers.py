@@ -3,7 +3,7 @@
 import abc
 import re
 import gzip
-from typing import List, Union
+from typing import List, Union, Dict
 
 from lxml import etree
 
@@ -135,11 +135,6 @@ class ParserXmlClinicaStudy(ParserXmlBase):
     ) -> Union[str, None]:
         """Extracted and sanitizes the text out of an element containing an
         element of `<textblock_struct>` type.
-
-        Note:
-            Sanitization is limited to removing new-line characters and
-            compressing multi-character whitespace to single-character
-            whitespace.
 
         Args:
             element (etree.Element): Element containing an element of
@@ -1086,6 +1081,31 @@ class ParserXmlClinicaStudy(ParserXmlBase):
                 mesh_terms.append(mesh_term)
 
         return mesh_terms
+
+    def parse_ipd_info_types(
+        self,
+        element: etree.Element
+    ) -> List[Dict[str, str]]:
+        """ Extracts and parses `<ipd_info_type>` elements from a
+            `<patient_data_struct>` element and returns the values of the
+            contained elements.
+
+        Args:
+            element (etree.Element): The `<patient_data_struct>` element.
+
+        Returns:
+            List[Dict[str, str]]: The parsed values of the contained elements.
+        """
+
+        ipd_info_types = []
+
+        if element is None:
+            return ipd_info_types
+
+        for _element in element.findall("ipd_info_type"):
+            ipd_info_types.append({"ipd_info_type": self._et(_element)})
+
+        return ipd_info_types
 
     def parse_patient_data(
         self,
