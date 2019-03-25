@@ -1128,6 +1128,12 @@ class ParserXmlClinicaStudy(ParserXmlBase):
         patient_data = {
             "sharing_ipd": self._et(element.find("sharing_ipd")),
             "ipd_description": self._et(element.find("ipd_description")),
+            "ipd_time_frame": self._et(element.find("ipd_time_frame")),
+            "ipd_access_criteria": self._et(
+                element.find("ipd_access_criteria"),
+            ),
+            "ipd_url": self._et(element.find("ipd_url")),
+            "ipd_info_types": self.parse_ipd_info_types(element),
         }
 
         return patient_data
