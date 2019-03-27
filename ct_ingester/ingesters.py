@@ -23,6 +23,7 @@ from fform.orm_ct import StudyIntervention
 from fform.orm_ct import InterventionArmGroup
 from fform.orm_ct import StudyDoc
 from fform.orm_ct import StudyStudyDoc
+from fform.orm_mt import Descriptor
 from fform.dals_ct import DalClinicalTrials
 
 from ct_ingester.loggers import create_logger
@@ -843,31 +844,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
-    @log_ingestion_of_document(document_name="mesh_term")
-    def ingest_mesh_term(
-        self,
-        doc: dict,
-    ) -> Union[int, None]:
-        """Ingests a parsed element of type `<mesh_term>` and creates a
-        `MeshTerm` record.
-
-        Args:
-            doc (dict): The element of type `<mesh_term>` parsed into a
-                dictionary.
-
-        Returns:
-             int: The primary-key ID of the `MeshTerm` record.
-        """
-
-        if not doc:
-            return None
-
-        obj_id = self.dal.iodi_mesh_term(
-            term=doc.get("mesh_term"),
-        )
-
-        return obj_id
-
     def delete_existing_pata_data_ipd_info_types(
         self,
         patient_data_id: int,
@@ -1341,14 +1317,19 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 keyword_id=keyword_id,
             )
 
-        # Create `MeshTerm` and `StudyMeshTerm` records.
+        # Create `StudyDescriptor` records.
         for mesh_term in doc.get("mesh_terms", []):
-            mesh_term_id = self.ingest_mesh_term(mesh_term)
-            self.dal.iodu_study_mesh_term(
-                study_id=obj_id,
-                mesh_term_id=mesh_term_id,
-                mesh_term_type=mesh_term.get("type")
-            )
+            descriptor = self.dal.get_by_attr(
+                orm_class=Descriptor,
+                attr_name="name",
+                attr_value=mesh_term.get("mesh_term"),
+            )  # type: Descriptor
+            if descriptor:
+                self.dal.iodu_study_descriptor(
+                    study_id=obj_id,
+                    descriptor_id=descriptor.descriptor_id,
+                    study_descriptor_type=mesh_term.get("type")
+                )
 
         # Delete the existing `StudyDoc` and `StudyStudyDoc` records (if they
         # exist).
