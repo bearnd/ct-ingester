@@ -1,5 +1,23 @@
 ## Changelog
 
+### v0.5.0
+
+Issue No. 184:
+
+- Updated the Ansible configuration so that the local PG database has all required schemata.
+- Updated the makefile to properly run unit-tests and coverage
+- Updated existing clinical-trial asset files and added new ones.
+- Added new unit-tests.
+- Added a new `parse_ipd_info_types` method to parse the 1-N IPD info types for patient-data records.
+- Updated the `parse_patient_data` method to include the new fields introduced in the 2019 schema.
+- Updated the various calls to renamed IODI methods.
+- Added a new `delete_existing_study_secondary_ids` method to the `IngesterDocumentClinicalTrial` class and also updated the `ingest` method to store multiple secondary IDs per study after deleting any existing ones.
+- Added a new `delete_existing_pata_data_ipd_info_types ` method to the `IngesterDocumentClinicalTrial` class and also updated the `ingest_patient_data` and `ingest` methods to store the newly introduced patient-data fields as well as the 1-N IPD info types.
+
+Issue No. 200:
+
+- Removed the `ingest_mesh_term ` method and updated the `ingest` method of the `IngesterDocumentClinicalTrial` class to retrieve the ID of a pre-stored MeSH descriptor and store it against the ingested study.
+
 ### v0.4.2
 
 - Fixed bug that precluded `StudyDocs` records from being populated.
