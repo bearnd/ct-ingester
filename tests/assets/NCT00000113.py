@@ -5,7 +5,7 @@ document = """
   <!-- This xml conforms to an XML Schema at:
     https://clinicaltrials.gov/ct2/html/images/info/public.xsd -->
   <required_header>
-    <download_date>ClinicalTrials.gov processed this data on November 06, 2017</download_date>
+    <download_date>ClinicalTrials.gov processed this data on February 08, 2019</download_date>
     <link_text>Link to the current ClinicalTrials.gov record.</link_text>
     <url>https://clinicaltrials.gov/show/NCT00000113</url>
   </required_header>
@@ -216,17 +216,20 @@ document = """
     <PMID>16009841</PMID>
   </results_reference>
   <verification_date>April 2016</verification_date>
-  <!-- Old date names will be dropped in a few months (sometime in 2018)                        -->
-  <lastchanged_date>April 14, 2016</lastchanged_date>
-  <firstreceived_date>September 23, 1999</firstreceived_date>
-  <!-- New date names                                                                           -->
+  <!-- For several months we've had both old and new date name tags                             -->
+  <!-- Now, the old date names have been dropped.                                               -->
+  <!-- The new date name replacements are:                                                      -->
+  <!--     OLD (gone)                                        NEW (in use)                       -->
+  <!--   lastchanged_date                         becomes   last_update_submitted               -->
+  <!--   firstreceived_date                       becomes   study_first_submitted               -->
+  <!--   firstreceived_results_date               becomes   results_first_submitted             -->
+  <!--   firstreceived_results_disposition_date   becomes   disposition_first_submitted         -->
   <study_first_submitted>September 23, 1999</study_first_submitted>
   <study_first_submitted_qc>September 23, 1999</study_first_submitted_qc>
   <study_first_posted type="Estimate">September 24, 1999</study_first_posted>
   <last_update_submitted>April 14, 2016</last_update_submitted>
   <last_update_submitted_qc>April 14, 2016</last_update_submitted_qc>
   <last_update_posted type="Estimate">April 15, 2016</last_update_posted>
-  <!-- End of dates                                                                             -->
   <keyword>myopia</keyword>
   <keyword>nearsightedness</keyword>
   <condition_browse>

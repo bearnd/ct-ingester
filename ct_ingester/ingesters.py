@@ -12,7 +12,9 @@ from fform.orm_ct import Enrollment
 from fform.orm_ct import Eligibility
 from fform.orm_ct import StudyDates
 from fform.orm_ct import ResponsibleParty
+from fform.orm_ct import PatientDataIpdInfoType
 from fform.orm_ct import PatientData
+from fform.orm_ct import StudySecondaryId
 from fform.orm_ct import ProtocolOutcome
 from fform.orm_ct import StudyOutcome
 from fform.orm_ct import ArmGroup
@@ -21,6 +23,7 @@ from fform.orm_ct import StudyIntervention
 from fform.orm_ct import InterventionArmGroup
 from fform.orm_ct import StudyDoc
 from fform.orm_ct import StudyStudyDoc
+from fform.orm_mt import Descriptor
 from fform.dals_ct import DalClinicalTrials
 
 from ct_ingester.loggers import create_logger
@@ -318,7 +321,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_oversight_info(
+        obj_id = self.dal.insert_oversight_info(
             has_dmc=doc.get("has_dmc"),
             is_fda_regulated_drug=doc.get("is_fda_regulated_drug"),
             is_fda_regulated_device=doc.get("is_fda_regulated_device"),
@@ -386,7 +389,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_expanded_access_info(
+        obj_id = self.dal.insert_expanded_access_info(
             expanded_access_type_individual=doc.get(
                 "expanded_access_type_individual"
             ),
@@ -419,7 +422,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_study_design_info(
+        obj_id = self.dal.insert_study_design_info(
             allocation=doc.get("allocation"),
             intervention_model=doc.get("intervention_model"),
             intervention_model_description=doc.get(
@@ -433,6 +436,43 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         )
 
         return obj_id
+
+    def delete_existing_study_secondary_ids(
+        self,
+        study: Study,
+    ) -> None:
+        """ Deletes the existing `StudySecondaryId` records associated with the
+            currently ingested study.
+
+        Args:
+            study (Study): The existing `Study` record object for which the
+                `StudySecondaryId` records will be deleted.
+        """
+
+        if not study:
+            return None
+
+        # Collect all `StudySecondaryId` objects linked to the given `Study`
+        # record.
+        study_secondary_ids = self.dal.bget_by_attr(
+            orm_class=StudySecondaryId,
+            attr_name="study_id",
+            attr_values=[study.study_id],
+            do_sort=False,
+        )  # type: List[StudySecondaryId]
+
+        # Collect all `StudySecondaryId` IDs.
+        study_secondary_ids_ids = [
+            study_secondary_id.study_secondary_id_id
+            for study_secondary_id in study_secondary_ids
+        ]
+
+        # Delete all related `StudySecondaryId` records.
+        for study_secondary_ids_id in study_secondary_ids_ids:
+            self.dal.delete(
+                orm_class=StudySecondaryId,
+                pk=study_secondary_ids_id
+            )
 
     def delete_existing_protocol_outcomes(
         self,
@@ -465,7 +505,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         # Collect all `StudyOutcome` IDs.
         study_outcome_ids = [
-            study_outcome.study_primary_outcome_id
+            study_outcome.study_outcome_id
             for study_outcome in study_outcomes
         ]
 
@@ -502,7 +542,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_protocol_outcome(
+        obj_id = self.dal.insert_protocol_outcome(
             measure=doc.get("measure"),
             time_frame=doc.get("time_frame"),
             description=doc.get("description"),
@@ -529,7 +569,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_enrollment(
+        obj_id = self.dal.insert_enrollment(
             value=doc.get("value"),
             enrollment_type=doc.get("type"),
         )
@@ -642,7 +682,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_arm_group(
+        obj_id = self.dal.insert_arm_group(
             label=doc.get("arm_group_label"),
             arm_group_type=doc.get("arm_group_type"),
             description=doc.get("description"),
@@ -743,7 +783,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_study_dates(
+        obj_id = self.dal.insert_study_dates(
             study_first_submitted=self._edt(doc.get("study_first_submitted")),
             study_first_submitted_qc=self._edt(
                 doc.get("study_first_submitted_qc")
@@ -793,7 +833,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_responsible_party(
+        obj_id = self.dal.insert_responsible_party(
             name_title=doc.get("name_title"),
             organization=doc.get("organization"),
             responsible_party_type=doc.get("responsible_party_type"),
@@ -804,30 +844,42 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         return obj_id
 
-    @log_ingestion_of_document(document_name="mesh_term")
-    def ingest_mesh_term(
+    def delete_existing_pata_data_ipd_info_types(
         self,
-        doc: dict,
-    ) -> Union[int, None]:
-        """Ingests a parsed element of type `<mesh_term>` and creates a
-        `MeshTerm` record.
+        patient_data_id: int,
+    ) -> None:
+        """ Deletes the existing `PatientDataIpdInfoType` records associated
+            with the currently ingested `PatientData` record.
 
         Args:
-            doc (dict): The element of type `<mesh_term>` parsed into a
-                dictionary.
-
-        Returns:
-             int: The primary-key ID of the `MeshTerm` record.
+            patient_data_id (int): The ID of the `PatientData` record for which
+                the `PatientDataIpdInfoType` records will be deleted.
         """
 
-        if not doc:
+        if not patient_data_id:
             return None
 
-        obj_id = self.dal.iodi_mesh_term(
-            term=doc.get("mesh_term"),
-        )
+        # Collect all `PatientDataIpdInfoType` objects linked to the given
+        # `PatientData` record.
+        ipd_info_types = self.dal.bget_by_attr(
+            orm_class=PatientDataIpdInfoType,
+            attr_name="patient_data_id",
+            attr_values=[patient_data_id],
+            do_sort=False,
+        )  # type: List[PatientDataIpdInfoType]
 
-        return obj_id
+        # Collect all `PatientDataIpdInfoType` IDs.
+        patient_data_ipd_info_type_ids = [
+            ipd_info_type.patient_data_ipd_info_type_id
+            for ipd_info_type in ipd_info_types
+        ]
+
+        # Delete all related `StudySecondaryId` records.
+        for patient_data_ipd_info_type_id in patient_data_ipd_info_type_ids:
+            self.dal.delete(
+                orm_class=PatientDataIpdInfoType,
+                pk=patient_data_ipd_info_type_id,
+            )
 
     @log_ingestion_of_document(document_name="patient_data")
     def ingest_patient_data(
@@ -848,9 +900,12 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_patient_data(
+        obj_id = self.dal.insert_patient_data(
             sharing_ipd=doc.get("sharing_ipd"),
             ipd_description=doc.get("ipd_description"),
+            ipd_time_frame=doc.get("ipd_time_frame"),
+            ipd_access_criteria=doc.get("ipd_access_criteria"),
+            ipd_url=doc.get("ipd_url"),
         )
 
         return obj_id
@@ -924,7 +979,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_study_doc(
+        obj_id = self.dal.insert_study_doc(
             doc_id=doc.get("doc_id"),
             doc_type=doc.get("doc_type"),
             doc_url=doc.get("doc_url"),
@@ -952,7 +1007,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         if not doc:
             return None
 
-        obj_id = self.dal.iodi_eligibility(
+        obj_id = self.dal.insert_eligibility(
             study_pop=doc.get("study_pop"),
             sampling_method=doc.get("sampling_method"),
             criteria=doc.get("criteria"),
@@ -998,13 +1053,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             attr_name="nct_id",
             attr_value=nct_id,
         )
-
-        # Retrieve the first secondary ID if defined.
-        secondary_ids = id_info.get("secondary_ids", [])
-        if secondary_ids:
-            secondary_id = secondary_ids[0]["secondary_id"]
-        else:
-            secondary_id = None
 
         # Create the `OversightInfo` record and hold on to its primary-key ID.
         oversight_info_id = self.ingest_oversight_info(
@@ -1121,6 +1169,9 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         # Update the `patient_data_id` of the existing `Study` record (if
         # defined) and delete the old `PatientData` record.
         if study and study.patient_data_id:
+            self.delete_existing_pata_data_ipd_info_types(
+                patient_data_id=patient_data_id,
+            )
             self.update_study_fk(
                 study=study,
                 fk_name="patient_data_id",
@@ -1131,7 +1182,6 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         obj_id = self.dal.iodu_study(
             org_study_id=id_info.get("org_study_id"),
-            secondary_id=secondary_id,
             nct_id=id_info.get("nct_id"),
             brief_title=doc.get("brief_title"),
             acronym=doc.get("acronym"),
@@ -1178,6 +1228,15 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 study_id=obj_id,
                 sponsor_id=sponsor_id,
                 sponsor_type=sponsor.get("type"),
+            )
+
+        # Delete the existing `StudySecondaryId` records (if they exist).
+        self.delete_existing_study_secondary_ids(study=study)
+        # Create `StudySecondaryId` records.
+        for secondary_id in id_info.get("secondary_ids", []):
+            self.dal.insert_study_secondary_id(
+                study_id=obj_id,
+                secondary_id=secondary_id.get("secondary_id"),
             )
 
         # Delete the existing `ProtocolOutcome` and `StudyOutcome` records (if
@@ -1258,14 +1317,19 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 keyword_id=keyword_id,
             )
 
-        # Create `MeshTerm` and `StudyMeshTerm` records.
+        # Create `StudyDescriptor` records.
         for mesh_term in doc.get("mesh_terms", []):
-            mesh_term_id = self.ingest_mesh_term(mesh_term)
-            self.dal.iodu_study_mesh_term(
-                study_id=obj_id,
-                mesh_term_id=mesh_term_id,
-                mesh_term_type=mesh_term.get("type")
-            )
+            descriptor = self.dal.get_by_attr(
+                orm_class=Descriptor,
+                attr_name="name",
+                attr_value=mesh_term.get("mesh_term"),
+            )  # type: Descriptor
+            if descriptor:
+                self.dal.iodu_study_descriptor(
+                    study_id=obj_id,
+                    descriptor_id=descriptor.descriptor_id,
+                    study_descriptor_type=mesh_term.get("type")
+                )
 
         # Delete the existing `StudyDoc` and `StudyStudyDoc` records (if they
         # exist).
