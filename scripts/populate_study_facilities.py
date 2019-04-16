@@ -54,7 +54,7 @@ if __name__ == '__main__':
     dal = DalClinicalTrials(
         sql_username="somada141",
         sql_password="BcOGAdy6kHnk0tIcLyYLRcfB8ZiqT6PiSn8mHjc6",
-        sql_host="192.168.0.12",
+        sql_host="192.168.0.168",
         sql_port=cfg.sql_port,
         sql_db=cfg.sql_db,
     )
