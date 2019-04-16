@@ -49,7 +49,7 @@ def populate():
             for facility, response in zip(facilities, responses):
 
                 # Skip empty responses.
-                if not response:
+                if not response or not response.get("candidates"):
                     continue
 
                 # Retrieving Google Place ID from the first candidate.
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     dal = DalClinicalTrials(
         sql_username=cfg.sql_username,
         sql_password=cfg.sql_password,
-        sql_host="192.168.0.12",
+        sql_host="192.168.0.168",
         sql_port=cfg.sql_port,
         sql_db=cfg.sql_db,
     )

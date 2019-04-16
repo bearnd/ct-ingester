@@ -96,7 +96,10 @@ def populate():
 
                 result = response["result"]
 
-                components = result["address_components"]
+                components = result.get("address_components")
+
+                if not components:
+                    continue
 
                 # # Fallback to the country defined in the facility if Google
                 # # returns no country.
