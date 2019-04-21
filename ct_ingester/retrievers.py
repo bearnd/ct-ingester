@@ -3,6 +3,7 @@
 from typing import Optional, List, Dict
 
 import requests
+import feedparser
 from fform.orm_ct import Facility
 
 from ct_ingester.loggers import create_logger
@@ -232,3 +233,53 @@ def get_place_details(
         msg_fmt = msg.format(response, google_place_id)
         logger.info(msg_fmt)
         return response
+
+
+class RetrieverCtRss(object):
+    """ Retriever class that retrieves the latest clinical-trial XML strings
+        through the clinical-trials RSS feed.
+    """
+
+    url_rss = "https://clinicaltrials.gov/ct2/results/rss.xml"
+
+    url_study_template = ("https://clinicaltrials.gov/ct2/show"
+                          "/{nct_id}?displayxml=true")
+
+    def __init__(self, **kwargs):
+        """ Constructor and initialization."""
+
+        self.logger = create_logger(
+            logger_name=type(self).__name__,
+            logger_level=kwargs.get("logger_level", "DEBUG")
+        )
+
+    def get_new_studies(self):
+        """ Retrieves the XML document for each of the clinical-trials studies
+            appearing in the RSS feed.
+
+        Yields:
+            str: The clinical-trial study XML string.
+        """
+
+        msg = "Retrieving clinical-trials RSS feed under URL '{}'."
+        msg_fmt = msg.format(self.url_rss)
+        self.logger.info(msg_fmt)
+
+        entries = feedparser.parse(self.url_rss).get("entries", [])
+
+        # Iterate over the entries in the RSS feed.
+        for entry in entries:
+            # Retreive the study ID.
+            nct_id = entry["id"]
+            # Aseemble the URL of the study.
+            entry_url = self.url_study_template.format(nct_id=nct_id)
+
+            msg = "Retrieving clinical-trials study '{}' under URL '{}'."
+            msg_fmt = msg.format(nct_id, entry_url)
+            self.logger.info(msg_fmt)
+
+            # Retrieve the clinical trial XML string.
+            response = requests.get(url=entry_url)
+
+            if response.ok:
+                yield response.content
