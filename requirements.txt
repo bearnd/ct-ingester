@@ -17,3 +17,4 @@ git+http://gitlab-ci-token:YGVQHuviVKnqbJ1SyAXd@sunny.diskstation.me:30000/bearn
 requests==2.19.1
 GeoAlchemy2==0.4.2
 Shapely==1.6.4
+feedparser==5.2.1
