@@ -18,3 +18,4 @@ coverage==4.1
 requests==2.19.1
 GeoAlchemy2==0.4.2
 Shapely==1.6.4
+feedparser==5.2.1

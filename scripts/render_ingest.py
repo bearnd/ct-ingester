@@ -2,7 +2,7 @@
 
 import os
 
-path = "/mnt/Downloads/_DUMP/download_station/AllPublicXML/"
+path = "/mnt/Downloads/_DUMP/download_station/CT/AllPublicXML_20190208"
 fname_config = "/etc/ct-ingester/ct-ingester.json"
 fname_script = "ingest_ct.sh"
 

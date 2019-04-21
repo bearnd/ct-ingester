@@ -1,5 +1,19 @@
 ## Changelog
 
+### v0.6.0
+
+Issue No. 206: Populate canonical facilities:
+
+- Added script to read previously backed up canonical facility information and port it to a new DB.
+- Updated Ansible role configuration variables.
+
+Issue No. 7: Automatize the ingestion of clinicaltrials.gov data:
+
+- Updated dependencies.
+- Added a new `RetrieverCtRss` class that retrieves the latest clinical-trials through the RSS feed.
+- Updated the `ParserXmlClinicalStudy` class and added a new` parse_string` method that parses an XML study directly from a string.
+- Updated the main sentinel to run the ingester in RSS mode.
+
 ### v0.5.0
 
 Issue No. 184:

@@ -5,11 +5,11 @@
 
 import os
 import argparse
-import fileinput
 
 from ct_ingester.parsers import ParserXmlClinicaStudy
 from fform.dals_ct import DalClinicalTrials
 from ct_ingester.ingesters import IngesterDocumentClinicalTrial
+from ct_ingester.retrievers import RetrieverCtRss
 from ct_ingester.config import import_config
 
 
@@ -37,11 +37,17 @@ def main(args):
         sql_db=cfg.sql_db,
     )
     ingester = IngesterDocumentClinicalTrial(dal=dal)
-
     parser = ParserXmlClinicaStudy()
-    for filename in args.filenames:
-        clinical_study = parser.parse(filename_xml=filename)
-        ingester.ingest(doc=clinical_study)
+
+    if arguments.mode == "file":
+        for filename in args.filenames:
+            clinical_study = parser.parse(filename_xml=filename)
+            ingester.ingest(doc=clinical_study)
+    elif arguments.mode == "rss":
+        retriever = RetrieverCtRss()
+        for xml_string in retriever.get_new_studies():
+            clinical_study = parser.parse_string(xml_string=xml_string)
+            ingester.ingest(doc=clinical_study)
 
 
 # main sentinel
@@ -53,8 +59,19 @@ if __name__ == "__main__":
     )
     argument_parser.add_argument(
         "filenames",
-        nargs="+",
+        nargs="*",
         help="ClinicalTrials.gov XML files to ingest.",
+    )
+    argument_parser.add_argument(
+        "--mode",
+        dest="mode",
+        help="Ingestion mode",
+        choices=[
+            "rss",
+            "file",
+        ],
+        required=False,
+        default="file"
     )
     argument_parser.add_argument(
         "--config-file",

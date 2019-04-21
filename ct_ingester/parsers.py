@@ -1273,6 +1273,22 @@ class ParserXmlClinicaStudy(ParserXmlBase):
 
         return clinical_study
 
+    def parse_string(self, xml_string: str) -> Dict:
+        """ Parses a clinical-trials study XML string.
+
+        Args:
+            xml_string (str): THe clinical-trials study XML string.
+
+        Returns:
+            Dict: The parsed study.
+        """
+
+        element = etree.fromstring(text=xml_string)
+
+        clinical_study = self.parse_clinical_study(element)
+
+        return clinical_study
+
     def parse(self, filename_xml):
 
         msg_fmt = "Parsing Pubmed XML file '{0}'".format(filename_xml)
