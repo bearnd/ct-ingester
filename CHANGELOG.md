@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.7.0
+
+- Updated the Ansible role and added a task to create a cronjob that will trigger an hourly ingestion of new clinical-trials as they appear in the RSS feed.
+
 ### v0.6.0
 
 Issue No. 206: Populate canonical facilities:
