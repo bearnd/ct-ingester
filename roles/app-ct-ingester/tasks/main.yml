@@ -209,3 +209,12 @@
   become: true
   become_user: "{{ system.user }}"
   when: is_vagrant is not defined or is_vagrant == False
+
+- name: Set up an hourly cron-job to ingest the CT RSS feed.
+  cron:
+    name: "Ingest CT RSS Feed"
+    special_time: hourly
+    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m ct_ingester.ct_ingester --mode rss --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' && touch {{ system.directories.log }}/success-stamp-hourly-dump"
+  become: true
+  become_user: "{{ system.user }}"
+  when: is_vagrant is not defined or is_vagrant == False
