@@ -46,10 +46,7 @@ class ParserXmlBase(object):
         if element is not None:
             text = element.text
 
-        if not text:
-            text = None
-        else:
-            text = text.strip()
+        text = None if not text else text.strip()
 
         return text
 
