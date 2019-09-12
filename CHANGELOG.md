@@ -1,5 +1,11 @@
 ## Changelog
 
+### v0.8.0
+
+Issue No. 311: psycopg2.IntegrityError: update or delete on table "arm_groups" violates foreign key constraint "fk_intervention_arm_groups_arm_group_id_arm_groups" on table "intervention_arm_groups":
+
+- Updated the `delete_existing_arm_groups` method to delete arm-groups properly without violating referential integrity.
+
 ### v0.7.0
 
 - Updated the Ansible role and added a task to create a cronjob that will trigger an hourly ingestion of new clinical-trials as they appear in the RSS feed.
