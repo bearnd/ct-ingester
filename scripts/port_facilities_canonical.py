@@ -123,7 +123,7 @@ def ingest_facility_canonical_old(facility_canonical_old):
     facility_canonical_id = dal.iodu_facility_canonical(
         google_place_id=facility_canonical_old["google_place_id"],
         name=facility_canonical_old["name"],
-        google_url=facility_canonical_old["name"],
+        google_url=facility_canonical_old["google_url"],
         url=facility_canonical_old["url"],
         address=facility_canonical_old["address"],
         phone_number=facility_canonical_old["phone_number"],
