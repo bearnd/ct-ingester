@@ -3,6 +3,8 @@
 import abc
 from typing import Union, List, Type
 
+import psycopg2
+import sqlalchemy.exc
 from fform.orm_base import OrmBase
 from fform.orm_ct import Study
 from fform.orm_ct import OversightInfo
@@ -19,6 +21,7 @@ from fform.orm_ct import ProtocolOutcome
 from fform.orm_ct import StudyOutcome
 from fform.orm_ct import ArmGroup
 from fform.orm_ct import StudyArmGroup
+from fform.orm_ct import Intervention
 from fform.orm_ct import StudyIntervention
 from fform.orm_ct import InterventionArmGroup
 from fform.orm_ct import StudyDoc
@@ -609,59 +612,60 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             do_sort=False,
         )  # type: List[StudyIntervention]
 
-        # Collect all `InterventionArmGroup` objects linked to the given `Study`
-        # record through the collected `StudyIntervention` records.
-        intervention_arm_groups = []
-        for study_intervention in study_interventions:
-            intervention_arm_groups += self.dal.bget_by_attr(
-                orm_class=InterventionArmGroup,
-                attr_name="intervention_id",
-                attr_values=[study_intervention.intervention_id],
-                do_sort=False,
-            )  # type: List[InterventionArmGroup]
-
-        # Collect all `StudyArmGroup` IDs.
-        study_arm_group_ids = [
-            study_arm_group.study_arm_group_id
-            for study_arm_group in study_arm_groups
-        ]
-
-        # Collect all `InterventionArmGroup` IDs.
-        interventions_arm_group_ids = [
-            intervention_arm_group.intervention_arm_group_id
-            for intervention_arm_group in intervention_arm_groups
-        ]
-
-        # Collect all `ArmGroup` IDs.
-        arm_group_ids = [
-            study_arm_group.arm_group_id
-            for study_arm_group in study_arm_groups
-        ] + [
-            intervention_arm_group.arm_group_id
-            for intervention_arm_group in intervention_arm_groups
-        ]
-        arm_group_ids = list(set(arm_group_ids))
-
-        # Delete all related `StudyArmGroup` records.
-        for study_arm_group_id in study_arm_group_ids:
-            self.dal.delete(
-                orm_class=StudyArmGroup,
-                pk=study_arm_group_id
-            )
+        # Collect all `InterventionArmGroup` objects linked to the given
+        # `StudyArmGroup` records.
+        intervention_arm_groups = self.dal.bget_by_attr(
+            orm_class=InterventionArmGroup,
+            attr_name="arm_group_id",
+            attr_values=[
+                study_arm_group.arm_group_id
+                for study_arm_group in study_arm_groups
+            ],
+            do_sort=False,
+        )  # type: List[InterventionArmGroup]
 
         # Delete all related `InterventionArmGroup` records.
-        for interventions_arm_group_id in interventions_arm_group_ids:
+        for intervention_arm_group in intervention_arm_groups:
             self.dal.delete(
                 orm_class=InterventionArmGroup,
-                pk=interventions_arm_group_id
+                pk=intervention_arm_group.intervention_arm_group_id
             )
 
-        # Delete all related `ArmGroup` records.
-        for arm_group_id in arm_group_ids:
+        # Delete all related `StudyArmGroup` records.
+        for study_arm_group in study_arm_groups:
             self.dal.delete(
-                orm_class=ArmGroup,
-                pk=arm_group_id,
+                orm_class=StudyArmGroup,
+                pk=study_arm_group.study_arm_group_id
             )
+
+        # Delete all related `StudyIntervention` records.
+        for study_intervention in study_interventions:
+            self.dal.delete(
+                orm_class=StudyIntervention,
+                pk=study_intervention.study_intervention_id
+            )
+
+        # Delete all related `Intervention` records bypassing integrity errors
+        # when they are referenced by other studies.
+        for study_intervention in study_interventions:
+            try:
+                self.dal.delete(
+                    orm_class=Study,
+                    pk=study_intervention.intervention_id,
+                )
+            except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
+                continue
+
+        # Delete all related `ArmGroup` records bypassing integrity errors when
+        # they are referenced by other interventions not linked to the study.
+        for study_arm_group in study_arm_groups:
+            try:
+                self.dal.delete(
+                    orm_class=ArmGroup,
+                    pk=study_arm_group.arm_group_id,
+                )
+            except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
+                continue
 
     @log_ingestion_of_document(document_name="arm_group")
     def ingest_arm_group(
