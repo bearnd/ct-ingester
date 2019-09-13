@@ -1,5 +1,11 @@
 ## Changelog
 
+### v0.9.2
+
+Story No. 905: Implement an automatic facility canonicalisation through Google:
+
+- Replaced the Google Maps API key with a new and encrypted key.
+
 ### v0.9.1
 
 Story No. 905: Implement an automatic facility canonicalisation through Google:
