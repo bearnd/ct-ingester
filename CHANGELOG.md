@@ -1,5 +1,13 @@
 ## Changelog
 
+### v0.9.0
+
+Story No. 905: Implement an automatic facility canonicalisation through Google:
+
+- Added TOML configuration file with `black` settings.
+- Moved shared functionality into `utils.py`.
+- Added new script to match recently updated yet unmatched facilities against a canonical facility.
+
 ### v0.8.0
 
 Issue No. 311: psycopg2.IntegrityError: update or delete on table "arm_groups" violates foreign key constraint "fk_intervention_arm_groups_arm_group_id_arm_groups" on table "intervention_arm_groups":
