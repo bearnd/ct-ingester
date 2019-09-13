@@ -35,6 +35,8 @@ def find_recent_unmatched_facilities(dal: DalClinicalTrials):
             > (datetime.date.today() - datetime.timedelta(days=2))
         )
 
+        query = query.group_by(Facility.facility_id)
+
         facilities_unmatched = query.all()
 
     return facilities_unmatched
