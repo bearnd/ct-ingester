@@ -224,3 +224,12 @@
   become: true
   become_user: "{{ system.user }}"
   when: is_vagrant is not defined or is_vagrant == False
+
+- name: Set up a daily cron-job to ingest the CT RSS feed.
+  cron:
+    name: "Canonicalize recently ingested facilities"
+    special_time: daily
+    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m scripts.match_recent_facilities --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' && touch {{ system.directories.log }}/success-stamp-daily-dump"
+  become: true
+  become_user: "{{ system.user }}"
+  when: is_vagrant is not defined or is_vagrant == False
