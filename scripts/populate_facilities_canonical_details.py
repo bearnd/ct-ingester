@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import multiprocessing
-from typing import List, Dict, Optional, Tuple, Union
 
 import sqlalchemy.orm
 from fform.dals_ct import DalClinicalTrials
@@ -13,6 +12,8 @@ from ct_ingester.retrievers import RetrieverGoogleMaps
 from ct_ingester.retrievers import get_place_details
 from ct_ingester.utils import chunk_generator
 
+from scripts.utils import iodu_canonical_facility_from_google
+
 
 logger = create_logger(logger_name=__name__)
 
@@ -23,37 +24,6 @@ api_keys = [
     "AIzaSyBhYcbF_PtLpA_BuckzQfd2A6XeWxF3s-Y",
     "AIzaSyDhG5rV9SNu0uQV88lq9QvjXRXI_Mzz3Lo",
 ]
-
-
-def _get_address_component_name(
-    address_components: List[Dict],
-    include_types: Tuple[str],
-    exclude_types: Optional[Tuple[str, ...]] = (),
-) -> Union[str, None]:
-
-    component = None
-    for _component in address_components:
-        s01 = set(_component["types"])
-        s02 = set(include_types)
-        s03 = set(exclude_types)
-
-        # If the component `types` don't contain all `include_types` then
-        # skip the component.
-        if not s01.issuperset(s02):
-            continue
-
-        # If the componment `types` include any of the `exclude_types` then
-        # skip the component.
-        if s01.intersection(s03):
-            continue
-
-        component = _component
-        break
-
-    if component:
-        return component["long_name"]
-
-    return None
 
 
 def _get_place_details(google_place_id):
@@ -94,144 +64,10 @@ def populate():
                 if not response:
                     continue
 
-                result = response["result"]
-
-                components = result.get("address_components")
-
-                if not components:
-                    continue
-
-                # # Fallback to the country defined in the facility if Google
-                # # returns no country.
-                country = _get_address_component_name(
-                    components, ("country",)
-                )
-                # country = country if country else facility.country
-
-                dal.iodu_facility_canonical(
+                iodu_canonical_facility_from_google(
+                    dal=dal,
                     google_place_id=facility.google_place_id,
-                    name=result["name"],
-                    google_url=result["url"],
-                    url=result.get("website"),
-                    address=result["formatted_address"],
-                    phone_number=result.get("international_phone_number"),
-                    coordinate_longitude=result["geometry"]["location"]["lng"],
-                    coordinate_latitude=result["geometry"]["location"]["lat"],
-                    country=country,
-                    administrative_area_level_1=_get_address_component_name(
-                        components,
-                        ("administrative_area_level_1",)
-                    ),
-                    administrative_area_level_2=_get_address_component_name(
-                        components,
-                        ("administrative_area_level_2",)
-                    ),
-                    administrative_area_level_3=_get_address_component_name(
-                        components,
-                        ("administrative_area_level_3",)
-                    ),
-                    administrative_area_level_4=_get_address_component_name(
-                        components,
-                        ("administrative_area_level_4",)
-                    ),
-                    administrative_area_level_5=_get_address_component_name(
-                        components,
-                        ("administrative_area_level_5",)
-                    ),
-                    locality=_get_address_component_name(
-                        components, ("locality",)
-                    ),
-                    sublocality=_get_address_component_name(
-                        components,
-                        ("sublocality",),
-                        (
-                            "sublocality_level_1",
-                            "sublocality_level_2",
-                            "sublocality_level_3",
-                            "sublocality_level_4",
-                            "sublocality_level_5",
-                        )
-                    ),
-                    sublocality_level_1=_get_address_component_name(
-                        components,
-                        ("sublocality_level_1",)
-                    ),
-                    sublocality_level_2=_get_address_component_name(
-                        components,
-                        ("sublocality_level_2",)
-                    ),
-                    sublocality_level_3=_get_address_component_name(
-                        components,
-                        ("sublocality_level_3",)
-                    ),
-                    sublocality_level_4=_get_address_component_name(
-                        components,
-                        ("sublocality_level_4",)
-                    ),
-                    sublocality_level_5=_get_address_component_name(
-                        components,
-                        ("sublocality_level_5",)
-                    ),
-                    colloquial_area=_get_address_component_name(
-                        components,
-                        ("colloquial_area",)
-                    ),
-                    floor=_get_address_component_name(
-                        components,
-                        ("floor",)
-                    ),
-                    room=_get_address_component_name(
-                        components,
-                        ("room",)
-                    ),
-                    intersection=_get_address_component_name(
-                        components,
-                        ("intersection",)
-                    ),
-                    neighborhood=_get_address_component_name(
-                        components,
-                        ("neighborhood",)
-                    ),
-                    post_box=_get_address_component_name(
-                        components,
-                        ("post_box",)
-                    ),
-                    postal_code=_get_address_component_name(
-                        components,
-                        ("postal_code",)
-                    ),
-                    postal_code_prefix=_get_address_component_name(
-                        components,
-                        ("postal_code_prefix",)
-                    ),
-                    postal_code_suffix=_get_address_component_name(
-                        components,
-                        ("postal_code_suffix",)
-                    ),
-                    postal_town=_get_address_component_name(
-                        components,
-                        ("postal_town",)
-                    ),
-                    premise=_get_address_component_name(
-                        components,
-                        ("premise",)
-                    ),
-                    subpremise=_get_address_component_name(
-                        components,
-                        ("subpremise",)
-                    ),
-                    route=_get_address_component_name(
-                        components,
-                        ("route",)
-                    ),
-                    street_address=_get_address_component_name(
-                        components,
-                        ("street_address",)
-                    ),
-                    street_number=_get_address_component_name(
-                        components,
-                        ("street_number",)
-                    ),
+                    google_response=response
                 )
 
 
