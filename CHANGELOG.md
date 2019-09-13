@@ -1,5 +1,13 @@
 ## Changelog
 
+### v0.9.1
+
+Story No. 905: Implement an automatic facility canonicalisation through Google:
+
+- Updated Ansible role to cron the canonicalization of recent facilities.
+- Updated query in `find_recent_unmatched_facilities` function.
+
+
 ### v0.9.0
 
 Story No. 905: Implement an automatic facility canonicalisation through Google:
