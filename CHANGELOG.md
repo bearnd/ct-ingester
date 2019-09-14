@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.10.0
+
+- Story CH1096: Switch `ct-ingester` Git deployment to GitLab.com.
+
 ### v0.9.2
 
 Story No. 905: Implement an automatic facility canonicalisation through Google:
