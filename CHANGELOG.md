@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.11.1
+
+- Updated `render_ingest.py` script with CLI arguments.
+
 ### v0.11.0
 
 - Story CH1138: Add Sentry to `ct-ingester`.
