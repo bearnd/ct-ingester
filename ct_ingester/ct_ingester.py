@@ -11,6 +11,7 @@ from fform.dals_ct import DalClinicalTrials
 from ct_ingester.ingesters import IngesterDocumentClinicalTrial
 from ct_ingester.retrievers import RetrieverCtRss
 from ct_ingester.config import import_config
+from ct_ingester.sentry import initialize_sentry
 
 
 def load_config(args):
@@ -28,6 +29,9 @@ def load_config(args):
 
 def main(args):
     cfg = load_config(args=args)
+
+    # Initialize the Sentry agent.
+    initialize_sentry(cfg=cfg)
 
     dal = DalClinicalTrials(
         sql_username=cfg.sql_username,
