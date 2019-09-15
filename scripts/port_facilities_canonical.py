@@ -271,9 +271,15 @@ if __name__ == '__main__':
         help="Dumped CSV of the `facilities_canonical` table.",
         required=True,
     )
+    argument_parser.add_argument(
+        "--config-file",
+        dest="config_file",
+        help="configuration file",
+        required=True,
+    )
     arguments = argument_parser.parse_args()
 
-    cfg = import_config("/etc/ct-ingester/ct-ingester-dev.json")
+    cfg = import_config(arguments.config_file)
     # Create a new DAL.
     dal = DalClinicalTrials(
         sql_username=cfg.sql_username,

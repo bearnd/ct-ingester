@@ -151,7 +151,7 @@ if __name__ == "__main__":
         "--config-file",
         dest="config_file",
         help="configuration file",
-        required=False,
+        required=True,
     )
     arguments = argument_parser.parse_args()
 
