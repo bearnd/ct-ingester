@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.11.0
+
+- Story CH1138: Add Sentry to `ct-ingester`.
+
 ### v0.10.0
 
 - Story CH1096: Switch `ct-ingester` Git deployment to GitLab.com.
