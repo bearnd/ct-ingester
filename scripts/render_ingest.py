@@ -1,28 +1,65 @@
 # coding=utf-8
 
+import argparse
 import os
 
-path = "/mnt/Downloads/_DUMP/download_station/CT/AllPublicXML_20190208"
-fname_config = "/etc/ct-ingester/ct-ingester.json"
-fname_script = "ingest_ct.sh"
 
-# Collect subdirectories skipping files alongside them.
-subdirs = [os.path.join(path, d) for d in os.listdir(path) if "." not in d]
+def render_ingest_file(data_directory: str, config_file: str, output_file: str):
 
-# Collect all XML files from the various subdirectories.
-fnames = []
-for subdir in subdirs:
-    for fname in os.listdir(subdir):
-        if fname.endswith(".xml"):
-            fnames.append(os.path.join(subdir, fname))
+    # Collect subdirectories skipping files alongside them.
+    subdirs = [
+        os.path.join(data_directory, d)
+        for d in os.listdir(data_directory)
+        if "." not in d
+    ]
 
-tmpl = ("python -m ct_ingester.ct_ingester {fname_xml} "
-        "--config-file='{fname_config}'")
+    # Collect all XML files from the various subdirectories.
+    fnames = []
+    for subdir in subdirs:
+        for fname in os.listdir(subdir):
+            if fname.endswith(".xml"):
+                fnames.append(os.path.join(subdir, fname))
 
-# Write out the ingestion template file.
-with open(fname_script, "w") as fout:
-    for fname in fnames:
-        line = tmpl.format(fname_xml=fname, fname_config=fname_config)
-        fout.write(line)
-        fout.write("\n")
-        fout.flush()
+    # Write out the ingestion template file.
+    with open(output_file, "w") as fout:
+        # Write `set -e` to stop at each error.
+        fout.write("set -e\n")
+        for fname in fnames:
+            line = (
+                f"python -m ct_ingester.ct_ingester {fname} "
+                f"--config-file='{config_file}'"
+            )
+            fout.write(line)
+            fout.write("\n")
+            fout.flush()
+
+
+if __name__ == "__main__":
+    argument_parser = argparse.ArgumentParser(
+        description=(
+            "ct-ingester: ClinicalTrials.gov XML dump parser and SQL "
+            "ingester."
+        )
+    )
+    argument_parser.add_argument(
+        "--data-directory",
+        dest="data_directory",
+        help="ClinicalTrials data directory",
+        required=True,
+    )
+    argument_parser.add_argument(
+        "--config-file",
+        dest="config_file",
+        help="configuration file",
+        required=True,
+    )
+    argument_parser.add_argument(
+        "--output-file", dest="output_file", help="Output file", required=True
+    )
+    arguments = argument_parser.parse_args()
+
+    render_ingest_file(
+        data_directory=arguments.data_directory,
+        config_file=arguments.config_file,
+        output_file=arguments.output_file,
+    )
