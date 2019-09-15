@@ -113,6 +113,10 @@ config:
       workers: 1
       worker_class: sync
 
+    # Sentry configuration settings.
+    sentry:
+        dsn:
+
   dev:
     # General Settings.
     logger_level: DEBUG
@@ -134,6 +138,10 @@ config:
       workers: 1
       worker_class: sync
 
+    # Sentry configuration settings.
+    sentry:
+        dsn:
+
   prod:
     # General Settings.
     logger_level: INFO
@@ -154,3 +162,7 @@ config:
       port: 5555
       workers: 4
       worker_class: sync
+
+    # Sentry configuration settings.
+    sentry:
+      dsn: "{{ sentry_dsn }}"
