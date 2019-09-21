@@ -55,7 +55,9 @@ def read_facilities(filename_facilities_csv):
         next(reader)
 
         for entry in reader:
+            # Cleanup the MD5 entry.
             md5 = entry["md5"].replace("E'\\\\x", "").replace("'", "")
+            md5 = md5.lower()
             facilities[md5] = entry
 
     return facilities
@@ -221,7 +223,7 @@ def populate(
                 )
 
                 # Get the hexadecimal MD5 of the new facility.
-                md5_hex = facility_new.md5.hex()
+                md5_hex = str(facility_new.md5.hex()).lower()
 
                 # Skip new facilities that aren't represented in
                 # `facilities_old`.

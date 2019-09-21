@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.12.1
+
+- Fixed bug in facility porting script where the CSV MD5s were not lowercased and would therefore lead to no matches.
+
 ### v0.12.0
 
 - Story No. 1054: Import canonical facilities table in production database.
