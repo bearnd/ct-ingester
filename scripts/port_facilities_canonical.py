@@ -31,18 +31,22 @@ def read_facilities(filename_facilities_csv):
             finp,
             fieldnames=[
                 "facility_id",
+                "facility_canonical_id",
                 "name",
                 "city",
                 "state",
                 "zip_code",
                 "country",
                 "md5",
-                "facility_canonical_id",
             ],
             delimiter="|",
         )
+
+        # Skip header
+        next(reader)
+
         for entry in reader:
-            md5 = entry["md5"].replace("\\x", "")
+            md5 = entry["md5"].replace("E'\\\\x", "").replace("'", "")
             facilities[md5] = entry
 
     return facilities
@@ -98,6 +102,10 @@ def read_facilities_canonical(filename_facilities_canonical_csv):
             ],
             delimiter="|",
         )
+
+        # Skip header
+        next(reader)
+
         for entry in reader:
             facilities_canonical[entry["facility_canonical_id"]] = entry
 
