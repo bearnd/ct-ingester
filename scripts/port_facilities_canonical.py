@@ -1,5 +1,14 @@
 # coding=utf-8
 
+"""
+CSV requirements:
+- Have a header matching the fields in the corresponding methods.
+- Every field should be pipe-separated (`|`).
+- Every field should be quoted.
+- Have the `md5` field be in the format of
+  `E'\\\\xE1775B65B527E06E242F3F8E38948A62'`.
+"""
+
 import argparse
 import binascii
 import csv
@@ -206,9 +215,10 @@ def populate(
             # Iterate over the new facilities chunk.
             for facility_new in facilities_new:
 
-                msg = "Processing facility with ID '{}'"
-                msg_fmt = msg.format(facility_new.facility_id)
-                logger.info(msg_fmt)
+                logger.info(
+                    f"Processing new facility with ID "
+                    f"'{facility_new.facility_id}'"
+                )
 
                 # Get the hexadecimal MD5 of the new facility.
                 md5_hex = facility_new.md5.hex()
@@ -216,6 +226,11 @@ def populate(
                 # Skip new facilities that aren't represented in
                 # `facilities_old`.
                 if md5_hex not in facilities_old:
+                    logger.debug(
+                        f"Did not find match to old facilities for new "
+                        f"facility with ID {facility_new.facility_id} and MD5 "
+                        f"{md5_hex}. Skipping"
+                    )
                     continue
 
                 facility_old = facilities_old[md5_hex]
@@ -227,6 +242,11 @@ def populate(
                 ]
 
                 if facility_canonical_id_old not in facilities_canonical_old:
+                    logger.debug(
+                        f"Did not find match to old canonical facilities for a"
+                        f" canonical facility with ID "
+                        f"{facility_canonical_id_old}. Skipping"
+                    )
                     continue
 
                 # Retrieve the data of the associated old canonical facility.
@@ -236,6 +256,7 @@ def populate(
 
                 # (Attempt to) retrieve the newly stored canonical facility
                 # (possibly in a previous run of this script).
+                # noinspection PyTypeChecker
                 facility_canonical_new = dal.get_by_attr(
                     orm_class=FacilityCanonical,
                     attr_name="google_place_id",
