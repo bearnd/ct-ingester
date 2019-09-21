@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.12.0
+
+- Story No. 1054: Import canonical facilities table in production database.
+
 ### v0.11.1
 
 - Updated `render_ingest.py` script with CLI arguments.
