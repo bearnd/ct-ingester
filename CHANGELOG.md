@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.14.1
+
+- Fixed bug in the `delete_existing_arm_groups` method of the `IngesterDocumentClinicalTrial` class where the wrong record was being deleted causing the process to fail.
+
 ### v0.14.0
 
 - Story No. 1310: Add Sentry to cron'ed scripts.
