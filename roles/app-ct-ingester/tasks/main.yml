@@ -193,16 +193,25 @@
   cron:
     name: "Ingest CT RSS Feed"
     special_time: hourly
-    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m ct_ingester.ct_ingester --mode rss --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' && touch {{ system.directories.log }}/success-stamp-hourly-dump"
+    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m ct_ingester.ct_ingester --mode rss --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' && touch {{ system.directories.log }}/success-stamp-ingest-rss-hourly"
   become: true
   become_user: "{{ system.user }}"
   when: is_vagrant is not defined or is_vagrant == False
 
-- name: Set up a daily cron-job to ingest the CT RSS feed.
+- name: Set up a daily cron-job to canonicalize recently ingested facilities.
   cron:
     name: "Canonicalize recently ingested facilities"
     special_time: daily
-    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m scripts.match_recent_facilities --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' && touch {{ system.directories.log }}/success-stamp-daily-dump"
+    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m scripts.match_recent_facilities --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' && touch {{ system.directories.log }}/success-stamp-canonicalize-facilities-daily"
+  become: true
+  become_user: "{{ system.user }}"
+  when: is_vagrant is not defined or is_vagrant == False
+
+- name: Set up an hourly cron-job to populate the `study_facilities` table.
+  cron:
+    name: "Populate the `study_facilities` table"
+    special_time: hourly
+    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m scripts.populate_study_facilities --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' --num-days 1 && touch {{ system.directories.log }}/success-stamp-canonicalize-facilities-daily"
   become: true
   become_user: "{{ system.user }}"
   when: is_vagrant is not defined or is_vagrant == False
