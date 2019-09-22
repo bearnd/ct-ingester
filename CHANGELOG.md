@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.15.1
+
+- [ch1320] Re-introduced try-except guards in the `delete_existing_arm_groups` method of the `IngesterDocumentClinicalTrial`.
+
 ### v0.15.0
 
 - Story No. 1320: Integrity errors in the `delete_existing_arm_groups` method of the`ct-ingester`.
