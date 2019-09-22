@@ -17,6 +17,7 @@ from fform.dals_ct import DalClinicalTrials
 from fform.orm_ct import Study
 from fform.orm_ct import StudyFacility
 from fform.orm_ct import StudyDates
+from fform.orm_ct import Location
 
 from ct_ingester.utils import chunk_generator
 from ct_ingester.sentry import initialize_sentry
@@ -34,10 +35,14 @@ def find_recent_studies(
     """ Retrieves recently updated studies."""
 
     query = session.query(Study)  # type: sqlalchemy.orm.Query
-    query = query.join(Study.study_dates)
+    query = query.join(Study.locations)
+
+    # Add filter to ignore studies without locations.
+    query = query.filter(Location.location_id != None)
 
     # Filter down to studies updated in the last `num_days` days.
     if num_days:
+        query = query.join(Study.study_dates)
         query = query.filter(
             StudyDates.last_update_posted
             > (datetime.date.today() - datetime.timedelta(days=num_days))
