@@ -19,6 +19,8 @@ from fform.orm_ct import StudyFacility
 from fform.orm_ct import StudyDates
 
 from ct_ingester.utils import chunk_generator
+from ct_ingester.sentry import initialize_sentry
+
 
 logger = create_logger(logger_name=__name__)
 
@@ -26,7 +28,7 @@ logger = create_logger(logger_name=__name__)
 def find_recent_studies(
     session: sqlalchemy.orm.Session,
     num_days: Optional[int] = None,
-    chunk_size: Optional[int] = 10,
+    chunk_size: Optional[int] = 1000,
     skip_populated: Optional[bool] = False,
 ) -> Iterable[Iterable[Study]]:
     """ Retrieves recently updated studies."""
@@ -55,7 +57,7 @@ def find_recent_studies(
 def populate(
     dal: DalClinicalTrials,
     num_days: Optional[int] = None,
-    chunk_size: Optional[int] = 10,
+    chunk_size: Optional[int] = 1000,
     skip_populated: Optional[bool] = False,
     dry_run: Optional[bool] = False,
 ):
@@ -144,6 +146,9 @@ if __name__ == "__main__":
         logger.info("Performing a dry-run.")
 
     cfg = import_config(arguments.config_file)
+
+    # Initialize the Sentry agent.
+    initialize_sentry(cfg=cfg)
 
     # Create a new DAL.
     _dal = DalClinicalTrials(
