@@ -1,5 +1,10 @@
 ## Changelog
 
+### v0.14.0
+
+- Story No. 1310: Add Sentry to cron'ed scripts.
+- [ch1293]: Updated the `populate_study_facilities.py` and increased the chunk-size to get more studies in per run.
+
 ### v0.13.1
 
 - [ch1293]: Updated `populate_study_facilities.py` script and included a CLI flag to skip studies that have been previously populated.
