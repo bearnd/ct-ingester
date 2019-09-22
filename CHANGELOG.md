@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.15.0
+
+- Story No. 1320: Integrity errors in the `delete_existing_arm_groups` method of the`ct-ingester`.
+
 ### v0.14.2
 
 - [ch1293]: Updated the `populate_study_facilities.py` to skip studies without any locations.
