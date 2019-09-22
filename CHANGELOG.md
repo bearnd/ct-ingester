@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.13.1
+
+- [ch1293]: Updated `populate_study_facilities.py` script and included a CLI flag to skip studies that have been previously populated.
+
 ### v0.13.0
 
 - Story No. 1293: Implement and automatize the population of the `clinicaltrials.study_facilities` table.
