@@ -19,6 +19,8 @@ from fform.orm_ct import StudyFacility
 from fform.orm_ct import StudyDates
 
 from ct_ingester.utils import chunk_generator
+from ct_ingester.sentry import initialize_sentry
+
 
 logger = create_logger(logger_name=__name__)
 
@@ -144,6 +146,9 @@ if __name__ == "__main__":
         logger.info("Performing a dry-run.")
 
     cfg = import_config(arguments.config_file)
+
+    # Initialize the Sentry agent.
+    initialize_sentry(cfg=cfg)
 
     # Create a new DAL.
     _dal = DalClinicalTrials(
