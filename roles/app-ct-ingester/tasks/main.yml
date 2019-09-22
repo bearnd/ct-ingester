@@ -206,3 +206,12 @@
   become: true
   become_user: "{{ system.user }}"
   when: is_vagrant is not defined or is_vagrant == False
+
+- name: Set up an hourly cron-job to populate the `study_facilities` table.
+  cron:
+    name: "Populate the `study_facilities` table"
+    special_time: hourly
+    job: "cd {{ system.directories.share }}/src && {{ system.directories.virtual_env }}/bin/python -m scripts.populate_study_facilities --config-file='{{ system.directories.config }}/{{ project.name }}-prod.json' --num-days 1 && touch {{ system.directories.log }}/success-stamp-canonicalize-facilities-daily"
+  become: true
+  become_user: "{{ system.user }}"
+  when: is_vagrant is not defined or is_vagrant == False
