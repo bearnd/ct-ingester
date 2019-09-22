@@ -15,6 +15,7 @@ from ct_ingester.loggers import create_logger
 import sqlalchemy.orm
 from fform.dals_ct import DalClinicalTrials
 from fform.orm_ct import Study
+from fform.orm_ct import StudyFacility
 from fform.orm_ct import StudyDates
 
 from ct_ingester.utils import chunk_generator
@@ -26,10 +27,11 @@ def find_recent_studies(
     session: sqlalchemy.orm.Session,
     num_days: Optional[int] = None,
     chunk_size: Optional[int] = 10,
+    skip_populated: Optional[bool] = False,
 ) -> Iterable[Iterable[Study]]:
     """ Retrieves recently updated studies."""
 
-    query = session.query(Study)
+    query = session.query(Study)  # type: sqlalchemy.orm.Query
     query = query.join(Study.study_dates)
 
     # Filter down to studies updated in the last `num_days` days.
@@ -38,6 +40,10 @@ def find_recent_studies(
             StudyDates.last_update_posted
             > (datetime.date.today() - datetime.timedelta(days=num_days))
         )
+
+    if skip_populated:
+        query = query.outerjoin(Study.study_facilities)
+        query = query.filter(StudyFacility.study_id == None)
 
     studies_chunks = chunk_generator(
         generator=query.yield_per(chunk_size), chunk_size=chunk_size
@@ -50,13 +56,17 @@ def populate(
     dal: DalClinicalTrials,
     num_days: Optional[int] = None,
     chunk_size: Optional[int] = 10,
+    skip_populated: Optional[bool] = False,
     dry_run: Optional[bool] = False,
 ):
 
     with dal.session_scope() as session:  # type: sqlalchemy.orm.Session
 
         studies_chunks = find_recent_studies(
-            session=session, num_days=num_days, chunk_size=chunk_size
+            session=session,
+            num_days=num_days,
+            chunk_size=chunk_size,
+            skip_populated=skip_populated,
         )
         for studies_chunk in studies_chunks:
             studies = list(studies_chunk)  # type: List[Study]
@@ -115,6 +125,14 @@ if __name__ == "__main__":
         action="store_true",
     )
     argument_parser.add_argument(
+        "--skip-populated",
+        dest="skip_populated",
+        help="skip previously populated studies",
+        required=False,
+        default=False,
+        action="store_true",
+    )
+    argument_parser.add_argument(
         "--config-file",
         dest="config_file",
         help="configuration file",
@@ -137,5 +155,8 @@ if __name__ == "__main__":
     )
 
     populate(
-        dal=_dal, num_days=int(arguments.num_days), dry_run=arguments.dry_run
+        dal=_dal,
+        num_days=int(arguments.num_days) if arguments.num_days else None,
+        skip_populated=arguments.skip_populated,
+        dry_run=arguments.dry_run,
     )
