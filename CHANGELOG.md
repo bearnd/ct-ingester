@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.14.2
+
+- [ch1293]: Updated the `populate_study_facilities.py` to skip studies without any locations.
+
 ### v0.14.1
 
 - Fixed bug in the `delete_existing_arm_groups` method of the `IngesterDocumentClinicalTrial` class where the wrong record was being deleted causing the process to fail.
