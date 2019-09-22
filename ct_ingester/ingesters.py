@@ -650,7 +650,7 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
         for study_intervention in study_interventions:
             try:
                 self.dal.delete(
-                    orm_class=Study,
+                    orm_class=Intervention,
                     pk=study_intervention.intervention_id,
                 )
             except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
