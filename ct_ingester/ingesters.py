@@ -667,17 +667,23 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
 
         # Delete all related `Intervention` records.
         for study_intervention in study_interventions:
-            self.dal.delete(
-                orm_class=Intervention,
-                pk=study_intervention.intervention_id,
-            )
+            try:
+                self.dal.delete(
+                    orm_class=Intervention,
+                    pk=study_intervention.intervention_id,
+                )
+            except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
+                continue
 
         # Delete all related `ArmGroup` records.
         for study_arm_group in study_arm_groups:
-            self.dal.delete(
-                orm_class=ArmGroup,
-                pk=study_arm_group.arm_group_id,
-            )
+            try:
+                self.dal.delete(
+                    orm_class=ArmGroup,
+                    pk=study_arm_group.arm_group_id,
+                )
+            except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
+                continue
 
     @log_ingestion_of_document(document_name="arm_group")
     def ingest_arm_group(
