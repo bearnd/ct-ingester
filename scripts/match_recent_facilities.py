@@ -13,6 +13,7 @@ from ct_ingester.loggers import create_logger
 from ct_ingester.retrievers import RetrieverGoogleMaps
 from ct_ingester.retrievers import find_facility_google_place
 from ct_ingester.retrievers import get_place_details
+from ct_ingester.sentry import initialize_sentry
 
 from scripts.utils import iodu_canonical_facility_from_google
 
@@ -156,6 +157,9 @@ if __name__ == "__main__":
     arguments = argument_parser.parse_args()
 
     cfg = import_config(arguments.config_file)
+
+    # Initialize the Sentry agent.
+    initialize_sentry(cfg=cfg)
 
     # Create a new DAL.
     _dal = DalClinicalTrials(
