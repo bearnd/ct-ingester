@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.13.0
+
+- Story No. 1293: Implement and automatize the population of the `clinicaltrials.study_facilities` table.
+
 ### v0.12.1
 
 - Fixed bug in facility porting script where the CSV MD5s were not lowercased and would therefore lead to no matches.
