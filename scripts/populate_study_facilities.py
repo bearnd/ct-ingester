@@ -1,62 +1,141 @@
 # coding=utf-8
 
+"""
+Script to populate the `study_facilities` table (optionally) limited to
+recently updated studies.
+"""
+
+import argparse
+import datetime
+from typing import Iterable, Optional, List
+
 from ct_ingester.config import import_config
 from ct_ingester.loggers import create_logger
 
 import sqlalchemy.orm
 from fform.dals_ct import DalClinicalTrials
 from fform.orm_ct import Study
-from fform.orm_ct import Location
-from fform.orm_ct import Facility
+from fform.orm_ct import StudyDates
+
+from ct_ingester.utils import chunk_generator
 
 logger = create_logger(logger_name=__name__)
 
 
-def populate():
+def find_recent_studies(
+    session: sqlalchemy.orm.Session,
+    num_days: Optional[int] = None,
+    chunk_size: Optional[int] = 10,
+) -> Iterable[Iterable[Study]]:
+    """ Retrieves recently updated studies."""
 
-    with dal.session_scope() as session:
+    query = session.query(Study)
+    query = query.join(Study.study_dates)
 
-        query = session.query(Study)
-        # query = query.options(
-        #     sqlalchemy.orm.load_only(Study.study_id),
-        #     sqlalchemy.orm.joinedload(
-        #         Study.locations
-        #     ).load_only(
-        #         Location.location_id
-        #     ).joinedload(Location.facility).load_only(
-        #         Facility.facility_id,
-        #         Facility.facility_canonical_id,
-        #     ),
-        # )
+    # Filter down to studies updated in the last `num_days` days.
+    if num_days:
+        query = query.filter(
+            StudyDates.last_update_posted
+            > (datetime.date.today() - datetime.timedelta(days=num_days))
+        )
 
-        for study in query.yield_per(10):
-            msg_fmt = "Processing study {}".format(study)
-            logger.info(msg_fmt)
+    studies_chunks = chunk_generator(
+        generator=query.yield_per(chunk_size), chunk_size=chunk_size
+    )
 
-            for location in study.locations:
-                msg_fmt = "Processing location {}".format(location)
-                logger.info(msg_fmt)
-
-                facility_id = location.facility_id
-                facility_canonical_id = location.facility.facility_canonical_id
-                dal.iodu_study_facility(
-                    study_id=study.study_id,
-                    facility_id=facility_id,
-                    facility_canonical_id=facility_canonical_id,
-                )
+    return studies_chunks
 
 
-if __name__ == '__main__':
+def populate(
+    dal: DalClinicalTrials,
+    num_days: Optional[int] = None,
+    chunk_size: Optional[int] = 10,
+    dry_run: Optional[bool] = False,
+):
 
-    cfg = import_config("/etc/ct-ingester/ct-ingester-dev.json")
+    with dal.session_scope() as session:  # type: sqlalchemy.orm.Session
 
-    # Create a new clinical-trials DAL.
-    dal = DalClinicalTrials(
-        sql_username="somada141",
-        sql_password="BcOGAdy6kHnk0tIcLyYLRcfB8ZiqT6PiSn8mHjc6",
-        sql_host="192.168.0.168",
+        studies_chunks = find_recent_studies(
+            session=session, num_days=num_days, chunk_size=chunk_size
+        )
+        for studies_chunk in studies_chunks:
+            studies = list(studies_chunk)  # type: List[Study]
+            logger.warning(len(studies))
+            for study in studies:
+                logger.info(f"Processing study with ID {study.study_id}")
+
+                for location in study.locations:
+                    logger.info(
+                        f"Processing location with ID {location.location_id}"
+                    )
+
+                    facility_id = location.facility_id
+                    facility_canonical_id = (
+                        location.facility.facility_canonical_id
+                    )
+
+                    _prefix = "[DRY RUN] " if dry_run else ""
+
+                    logger.info(
+                        f"{_prefix}IODUing `StudyFacility` with a `study_id`"
+                        f" of '{study.study_id}', `facility_id` of "
+                        f"{facility_id}, and `facility_canonical_id` of "
+                        f"'{facility_canonical_id}'."
+                    )
+
+                    if not dry_run:
+                        dal.iodu_study_facility(
+                            study_id=study.study_id,
+                            facility_id=facility_id,
+                            facility_canonical_id=facility_canonical_id,
+                        )
+
+
+if __name__ == "__main__":
+
+    argument_parser = argparse.ArgumentParser(
+        description=(
+            "ct-ingester: ClinicalTrials.gov XML dump parser and SQL "
+            "ingester."
+        )
+    )
+    argument_parser.add_argument(
+        "--num-days",
+        dest="num_days",
+        help="number of days",
+        required=False,
+        default=None,
+    )
+    argument_parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        help="dry run",
+        required=False,
+        default=False,
+        action="store_true",
+    )
+    argument_parser.add_argument(
+        "--config-file",
+        dest="config_file",
+        help="configuration file",
+        required=True,
+    )
+    arguments = argument_parser.parse_args()
+
+    if arguments.dry_run:
+        logger.info("Performing a dry-run.")
+
+    cfg = import_config(arguments.config_file)
+
+    # Create a new DAL.
+    _dal = DalClinicalTrials(
+        sql_username=cfg.sql_username,
+        sql_password=cfg.sql_password,
+        sql_host=cfg.sql_host,
         sql_port=cfg.sql_port,
         sql_db=cfg.sql_db,
     )
 
-    populate()
+    populate(
+        dal=_dal, num_days=int(arguments.num_days), dry_run=arguments.dry_run
+    )
