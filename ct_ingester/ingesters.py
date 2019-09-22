@@ -22,6 +22,7 @@ from fform.orm_ct import StudyOutcome
 from fform.orm_ct import ArmGroup
 from fform.orm_ct import StudyArmGroup
 from fform.orm_ct import Intervention
+from fform.orm_ct import InterventionAlias
 from fform.orm_ct import StudyIntervention
 from fform.orm_ct import InterventionArmGroup
 from fform.orm_ct import StudyDoc
@@ -624,6 +625,18 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
             do_sort=False,
         )  # type: List[InterventionArmGroup]
 
+        # Collect all `InterventionAlias` objects linked to each
+        # `StudyIntervention` record.
+        intervention_aliases = self.dal.bget_by_attr(
+            orm_class=InterventionAlias,
+            attr_name="intervention_id",
+            attr_values=[
+                study_intervention.intervention_id
+                for study_intervention in study_interventions
+            ],
+            do_sort=False,
+        )  # type: List[InterventionAlias]
+
         # Delete all related `InterventionArmGroup` records.
         for intervention_arm_group in intervention_arm_groups:
             self.dal.delete(
@@ -645,27 +658,26 @@ class IngesterDocumentClinicalTrial(IngesterDocumentBase):
                 pk=study_intervention.study_intervention_id
             )
 
-        # Delete all related `Intervention` records bypassing integrity errors
-        # when they are referenced by other studies.
-        for study_intervention in study_interventions:
-            try:
-                self.dal.delete(
-                    orm_class=Intervention,
-                    pk=study_intervention.intervention_id,
-                )
-            except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
-                continue
+        # Delete all related `InterventionAlias` records.
+        for intervention_alias in intervention_aliases:
+            self.dal.delete(
+                orm_class=InterventionAlias,
+                pk=intervention_alias.intervention_alias_id
+            )
 
-        # Delete all related `ArmGroup` records bypassing integrity errors when
-        # they are referenced by other interventions not linked to the study.
+        # Delete all related `Intervention` records.
+        for study_intervention in study_interventions:
+            self.dal.delete(
+                orm_class=Intervention,
+                pk=study_intervention.intervention_id,
+            )
+
+        # Delete all related `ArmGroup` records.
         for study_arm_group in study_arm_groups:
-            try:
-                self.dal.delete(
-                    orm_class=ArmGroup,
-                    pk=study_arm_group.arm_group_id,
-                )
-            except (psycopg2.IntegrityError, sqlalchemy.exc.IntegrityError):
-                continue
+            self.dal.delete(
+                orm_class=ArmGroup,
+                pk=study_arm_group.arm_group_id,
+            )
 
     @log_ingestion_of_document(document_name="arm_group")
     def ingest_arm_group(
