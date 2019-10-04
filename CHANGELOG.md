@@ -1,5 +1,9 @@
 ## Changelog
 
+### v0.16.0
+
+- [ch1532]: Updated the cronjobs under the Ansible tasks and added cronjob monitoring via healthchecks.io.
+
 ### v0.15.1
 
 - [ch1320] Re-introduced try-except guards in the `delete_existing_arm_groups` method of the `IngesterDocumentClinicalTrial`.
